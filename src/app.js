@@ -907,7 +907,11 @@ document.getElementById('playBtn').addEventListener('click', function () {
     stopPlayback();
   } else {
     // Start from current slider position
-    const currentProgress = parseFloat(document.getElementById('timeSlider').value) / 100;
+    let currentProgress = parseFloat(document.getElementById('timeSlider').value) / 100;
+    // If at the end, restart from beginning
+    if (currentProgress >= 0.999) {
+      currentProgress = 0;
+    }
     startPlayback(currentProgress);
   }
 });
