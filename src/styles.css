@@ -67,12 +67,16 @@ body {
 
 #controlsChevron {
   color: #6b6b6b;
-  font-size: 16px;
   transition: transform 0.3s ease;
   opacity: 0.7;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+#controlsChevron svg {
+  width: 16px;
+  height: 16px;
 }
 
 #controls.expanded #controlsChevron {
@@ -146,12 +150,16 @@ body {
 
 #consoleChevron {
   color: #64d8cb;
-  font-size: 16px;
   transition: transform 0.3s ease;
   opacity: 0.8;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+#consoleChevron svg {
+  width: 16px;
+  height: 16px;
 }
 
 #console.expanded #consoleChevron {
@@ -340,9 +348,14 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 14px;
   transition: all 0.15s ease;
   flex-shrink: 0;
+  padding: 0;
+}
+
+#playBtn svg {
+  width: 16px;
+  height: 16px;
 }
 
 #playBtn:hover {
@@ -432,9 +445,14 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 20px;
   transition: all 0.15s ease;
   flex-shrink: 0;
+  padding: 0;
+}
+
+.date-nav-btn svg {
+  width: 20px;
+  height: 20px;
 }
 
 .date-nav-btn:hover:not(:disabled) {

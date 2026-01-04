@@ -1,3 +1,5 @@
+import { icons } from './icons.js';
+
 let map;
 let routeLayer;
 let currentMarker;
@@ -850,7 +852,7 @@ function startPlayback(startProgress = 0) {
 
   isPlaying = true;
   const playBtn = document.getElementById('playBtn');
-  playBtn.textContent = '⏸';
+  playBtn.innerHTML = icons.pause;
   playBtn.classList.add('playing');
 
   // Start from specified position or beginning
@@ -897,7 +899,7 @@ function stopPlayback() {
   }
 
   const playBtn = document.getElementById('playBtn');
-  playBtn.textContent = '▶';
+  playBtn.innerHTML = icons.play;
   playBtn.classList.remove('playing');
 }
 
@@ -916,8 +918,19 @@ document.getElementById('playBtn').addEventListener('click', function () {
   }
 });
 
+// Initialize icons
+function initIcons() {
+  // Set initial button icons
+  document.getElementById('playBtn').innerHTML = icons.play;
+  document.getElementById('prevDateBtn').innerHTML = icons.chevronLeft;
+  document.getElementById('nextDateBtn').innerHTML = icons.chevronRight;
+  document.getElementById('controlsChevron').innerHTML = icons.chevronDown;
+  document.getElementById('consoleChevron').innerHTML = icons.chevronDown;
+}
+
 // Initialize app
 async function initApp() {
+  initIcons();
   initMap();
   try {
     await initDB();

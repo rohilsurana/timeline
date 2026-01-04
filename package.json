@@ -23,5 +23,8 @@
     "eslint": "^9.39.2",
     "prettier": "^3.7.4",
     "vite": "^7.3.0"
+  },
+  "dependencies": {
+    "lucide-static": "^0.562.0"
   }
 }
