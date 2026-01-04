@@ -487,7 +487,8 @@ body {
 }
 
 .leaflet-control-attribution {
-  margin-bottom: 90px !important;
+  margin-bottom: 95px !important;
+  margin-right: 5px !important;
 }
 
 .leaflet-bottom.leaflet-right {
