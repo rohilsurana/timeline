@@ -2,11 +2,24 @@
   "name": "timeline-viewer",
   "version": "1.0.0",
   "description": "Google Maps Timeline Viewer with smooth playback animation",
+  "type": "module",
   "scripts": {
     "build": "node build.js",
-    "dev": "node build.js && open dist/index.html"
+    "dev": "node build.js && open dist/index.html",
+    "format": "prettier --write \"src/**/*.{js,css,html}\" \"*.js\"",
+    "format:check": "prettier --check \"src/**/*.{js,css,html}\" \"*.js\"",
+    "lint": "eslint \"src/**/*.js\" \"*.js\"",
+    "lint:fix": "eslint --fix \"src/**/*.js\" \"*.js\""
   },
-  "keywords": ["maps", "timeline", "visualization"],
+  "keywords": [
+    "maps",
+    "timeline",
+    "visualization"
+  ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^9.39.2",
+    "prettier": "^3.7.4"
+  }
 }

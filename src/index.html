@@ -1,93 +1,93 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Google Maps Timeline Viewer</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link rel="stylesheet" href="styles.css">
-</head>
-<body>
-<div id="controls" class="expanded">
-<div id="controlsHeader">
-<h1>Timeline Viewer</h1>
-<span id="controlsChevron">▼</span>
-</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google Maps Timeline Viewer</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="controls" class="expanded">
+      <div id="controlsHeader">
+        <h1>Timeline Viewer</h1>
+        <span id="controlsChevron">▼</span>
+      </div>
 
-<div id="controlsContent">
-<div class="control-group">
-<label for="timezoneSelect">Timezone</label>
-<select id="timezoneSelect">
-<option value="UTC">UTC</option>
-<option value="America/New_York">America/New_York (EST/EDT)</option>
-<option value="America/Chicago">America/Chicago (CST/CDT)</option>
-<option value="America/Denver">America/Denver (MST/MDT)</option>
-<option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
-<option value="Europe/London">Europe/London (GMT/BST)</option>
-<option value="Europe/Paris">Europe/Paris (CET/CEST)</option>
-<option value="Asia/Dubai">Asia/Dubai (GST)</option>
-<option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
-<option value="Asia/Singapore">Asia/Singapore (SGT)</option>
-<option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
-<option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
-</select>
-</div>
+      <div id="controlsContent">
+        <div class="control-group">
+          <label for="timezoneSelect">Timezone</label>
+          <select id="timezoneSelect">
+            <option value="UTC">UTC</option>
+            <option value="America/New_York">America/New_York (EST/EDT)</option>
+            <option value="America/Chicago">America/Chicago (CST/CDT)</option>
+            <option value="America/Denver">America/Denver (MST/MDT)</option>
+            <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
+            <option value="Europe/London">Europe/London (GMT/BST)</option>
+            <option value="Europe/Paris">Europe/Paris (CET/CEST)</option>
+            <option value="Asia/Dubai">Asia/Dubai (GST)</option>
+            <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+            <option value="Asia/Singapore">Asia/Singapore (SGT)</option>
+            <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
+            <option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
+          </select>
+        </div>
 
-<div class="control-group">
-<label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 5px;">
-<input type="checkbox" id="useRawData" checked style="margin-right: 8px;">
-<span style="font-size: 12px;">Use Raw GPS Data (more detailed)</span>
-</label>
-</div>
+        <div class="control-group">
+          <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 5px">
+            <input type="checkbox" id="useRawData" checked style="margin-right: 8px" />
+            <span style="font-size: 12px">Use Raw GPS Data (more detailed)</span>
+          </label>
+        </div>
 
-<div class="control-group">
-<label for="fileInput">Upload Timeline JSON</label>
-<label for="fileInput" class="file-upload-btn">Choose File</label>
-<input type="file" id="fileInput" accept=".json">
-<div class="filename" id="filename"></div>
-</div>
+        <div class="control-group">
+          <label for="fileInput">Upload Timeline JSON</label>
+          <label for="fileInput" class="file-upload-btn">Choose File</label>
+          <input type="file" id="fileInput" accept=".json" />
+          <div class="filename" id="filename"></div>
+        </div>
 
-<div class="control-group">
-<label for="dateSelect">Select Date</label>
-<select id="dateSelect" disabled>
-<option>Load a file first...</option>
-</select>
-</div>
-</div>
-</div>
+        <div class="control-group">
+          <label for="dateSelect">Select Date</label>
+          <select id="dateSelect" disabled>
+            <option>Load a file first...</option>
+          </select>
+        </div>
+      </div>
+    </div>
 
-<div id="info">
-<h3>Location</h3>
-<p id="locationName">-</p>
-<h3 style="margin-top: 10px;">Activity</h3>
-<p id="activityType">-</p>
-</div>
+    <div id="info">
+      <h3>Location</h3>
+      <p id="locationName">-</p>
+      <h3 style="margin-top: 10px">Activity</h3>
+      <p id="activityType">-</p>
+    </div>
 
-<div id="slider-container">
-<button id="prevDateBtn" class="date-nav-btn" disabled>‹</button>
-<div id="sliderContent">
-<div id="timeDisplay">
-<button id="playBtn">▶</button>
-<span id="timeText">00:00</span>
-</div>
-<input type="range" id="timeSlider" min="0" max="100" value="0" step="0.1">
-</div>
-<button id="nextDateBtn" class="date-nav-btn" disabled>›</button>
-</div>
+    <div id="slider-container">
+      <button id="prevDateBtn" class="date-nav-btn" disabled>‹</button>
+      <div id="sliderContent">
+        <div id="timeDisplay">
+          <button id="playBtn">▶</button>
+          <span id="timeText">00:00</span>
+        </div>
+        <input type="range" id="timeSlider" min="0" max="100" value="0" step="0.1" />
+      </div>
+      <button id="nextDateBtn" class="date-nav-btn" disabled>›</button>
+    </div>
 
-<div id="console" class="minimized">
-<div id="consoleHeader">
-<h3>Timeline Data</h3>
-<span id="consoleChevron">▼</span>
-</div>
-<div id="consoleContent"></div>
-</div>
+    <div id="console" class="minimized">
+      <div id="consoleHeader">
+        <h3>Timeline Data</h3>
+        <span id="consoleChevron">▼</span>
+      </div>
+      <div id="consoleContent"></div>
+    </div>
 
-<div id="mapContainer">
-<div id="map"></div>
-</div>
+    <div id="mapContainer">
+      <div id="map"></div>
+    </div>
 
-<script src="app.js"></script>
-</body>
+    <script src="app.js"></script>
+  </body>
 </html>
