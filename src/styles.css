@@ -486,6 +486,10 @@ body {
   margin-right: 20px !important;
 }
 
+.leaflet-control-attribution {
+  margin-bottom: 90px !important;
+}
+
 .leaflet-bottom.leaflet-right {
   bottom: 0 !important;
 }
