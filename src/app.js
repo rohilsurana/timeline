@@ -124,46 +124,52 @@ function extractLocations(segment) {
   // Handle activity segment
   if (segment.activity) {
     const activity = segment.activity;
+    const activityType = activity.topCandidate?.type || 'UNKNOWN';
     const startTime = parseTimestamp(segment.startTime);
     const endTime = parseTimestamp(segment.endTime);
 
     // Add waypoints if available
-    if (segment.timelinePath) {
-      segment.timelinePath.forEach(point => {
+    if (segment.timelinePath && segment.timelinePath.length > 0) {
+      // Calculate time intervals for each waypoint
+      const timePerPoint = (endTime - startTime) / (segment.timelinePath.length - 1 || 1);
+
+      segment.timelinePath.forEach((point, idx) => {
         if (point.point) {
           const lat = parseFloat(point.point.split(',')[0].replace('geo:', ''));
           const lng = parseFloat(point.point.split(',')[1]);
+          const pointTime = new Date(startTime.getTime() + timePerPoint * idx);
           locations.push({
             lat: lat,
             lng: lng,
-            timestamp: startTime,
+            timestamp: pointTime,
             type: 'activity',
-            activity: activity.topCandidate?.type || 'UNKNOWN',
+            activity: activityType,
           });
         }
       });
     }
-
-    // Fallback to start/end locations
-    if (segment.startLocation) {
-      locations.push({
-        lat: parseFloat(segment.startLocation.latLng.split(',')[0]),
-        lng: parseFloat(segment.startLocation.latLng.split(',')[1]),
-        timestamp: startTime,
-        type: 'activity',
-        activity: activity.topCandidate?.type || 'UNKNOWN',
-        name: segment.startLocation.name,
-      });
-    }
-    if (segment.endLocation) {
-      locations.push({
-        lat: parseFloat(segment.endLocation.latLng.split(',')[0]),
-        lng: parseFloat(segment.endLocation.latLng.split(',')[1]),
-        timestamp: endTime,
-        type: 'activity',
-        activity: activity.topCandidate?.type || 'UNKNOWN',
-        name: segment.endLocation.name,
-      });
+    // Fallback to start/end locations if no timelinePath
+    else {
+      if (segment.startLocation) {
+        locations.push({
+          lat: parseFloat(segment.startLocation.latLng.split(',')[0]),
+          lng: parseFloat(segment.startLocation.latLng.split(',')[1]),
+          timestamp: startTime,
+          type: 'activity',
+          activity: activityType,
+          name: segment.startLocation.name,
+        });
+      }
+      if (segment.endLocation) {
+        locations.push({
+          lat: parseFloat(segment.endLocation.latLng.split(',')[0]),
+          lng: parseFloat(segment.endLocation.latLng.split(',')[1]),
+          timestamp: endTime,
+          type: 'activity',
+          activity: activityType,
+          name: segment.endLocation.name,
+        });
+      }
     }
   }
 
@@ -544,7 +550,9 @@ function updateMap(progress) {
           const speed = timeDiff > 0 ? distance / timeDiff : 0;
           color = getSpeedColor(speed);
         } else if (routeColorMode === 'activity') {
-          color = getActivityColor(point1.activity || point1.type);
+          // Use activity from current point, fallback to 'UNKNOWN'
+          const activityType = point1.activity || (point1.type === 'place' ? 'STILL' : 'UNKNOWN');
+          color = getActivityColor(activityType);
         }
 
         const segment = L.polyline(segmentPoints, {
@@ -582,7 +590,17 @@ function updateMap(progress) {
   const accuracyText = currentData.accuracy ? ` (±${currentData.accuracy})` : '';
   document.getElementById('locationName').textContent = locationText + accuracyText;
 
-  let activityText = currentData.activity || currentData.type || '-';
+  // Display activity - prioritize activity field over type
+  let activityText = '-';
+  if (currentData.activity) {
+    activityText = currentData.activity;
+  } else if (currentData.type === 'place') {
+    activityText = 'Place Visit';
+  } else if (currentData.type === 'raw') {
+    activityText = 'Raw GPS';
+  } else {
+    activityText = currentData.type || '-';
+  }
   if (currentData.source) activityText += ` [${currentData.source}]`;
   document.getElementById('activityType').textContent = activityText;
   document.getElementById('info').style.display = 'block';
