@@ -476,6 +476,43 @@ function interpolate(start, end, factor) {
   };
 }
 
+// Update slider background with route colors
+function updateSliderGradient() {
+  const slider = document.getElementById('timeSlider');
+
+  if (routeColorMode === 'none' || currentDateData.length === 0) {
+    // Reset to default gray gradient
+    slider.style.background = 'linear-gradient(to right, #e8e8e8 0%, #e8e8e8 100%)';
+    return;
+  }
+
+  // Build gradient stops based on data points
+  const gradientStops = [];
+  for (let i = 0; i < currentDateData.length; i++) {
+    const point = currentDateData[i];
+    const percentage = (i / (currentDateData.length - 1)) * 100;
+
+    let color = '#4285f4';
+    if (routeColorMode === 'speed' && i < currentDateData.length - 1) {
+      const point2 = currentDateData[i + 1];
+      const timeDiff = (point2.timestamp - point.timestamp) / 1000;
+      const distance =
+        Math.sqrt(Math.pow(point2.lat - point.lat, 2) + Math.pow(point2.lng - point.lng, 2)) *
+        111000; // Rough conversion to meters
+      const speed = timeDiff > 0 ? distance / timeDiff : 0;
+      color = getSpeedColor(speed);
+    } else if (routeColorMode === 'activity') {
+      const activityType = point.activity || (point.type === 'place' ? 'STILL' : 'UNKNOWN');
+      color = getActivityColor(activityType);
+    }
+
+    gradientStops.push(`${color} ${percentage}%`);
+  }
+
+  const gradient = `linear-gradient(to right, ${gradientStops.join(', ')})`;
+  slider.style.background = gradient;
+}
+
 // Find the closest data points for a given timestamp
 function findDataPointsForTimestamp(timestamp) {
   if (currentDateData.length === 0) return null;
@@ -858,6 +895,8 @@ document.getElementById('routeColorMode').addEventListener('change', function (e
   updateMap(currentProgress);
   // Update legend visibility
   updateLegendVisibility();
+  // Update slider gradient
+  updateSliderGradient();
 });
 
 // Date selector handler
@@ -910,6 +949,9 @@ async function loadDate(dateStr) {
 
   // Update map
   updateMap(0);
+
+  // Update slider gradient
+  updateSliderGradient();
 
   // Fit bounds
   const bounds = currentDateData.map(loc => [loc.lat, loc.lng]);
