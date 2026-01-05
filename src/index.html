@@ -95,74 +95,83 @@
 
     <div id="mapContainer">
       <div id="map"></div>
-      <div id="legend" class="legend expanded" style="display: none">
-        <div id="legendHeader">
-          <h4>Legend</h4>
-          <span id="legendChevron"></span>
-        </div>
-        <div id="legendContent">
-          <div id="speedLegend" style="display: none">
-            <div class="legend-item">
-              <span class="legend-color" style="background: #ef4444"></span>
-              <span class="legend-label">Stationary (&lt;1 m/s)</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background: #eab308"></span>
-              <span class="legend-label">Walking (1-5 m/s)</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background: #22c55e"></span>
-              <span class="legend-label">Cycling (5-15 m/s)</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background: #3b82f6"></span>
-              <span class="legend-label">Driving (&gt;15 m/s)</span>
-            </div>
+
+      <!-- Legend Button -->
+      <button id="legendBtn" class="legend-btn" style="display: none">
+        <span>Legend</span>
+      </button>
+
+      <!-- Legend Modal -->
+      <div id="legendModal" class="legend-modal" style="display: none">
+        <div class="legend-modal-content">
+          <div class="legend-modal-header">
+            <h4>Route Color Legend</h4>
+            <button id="legendCloseBtn" class="legend-close-btn">&times;</button>
           </div>
-          <div id="activityLegend" style="display: none">
-            <div class="legend-item">
-              <span class="legend-color" style="background: #22c55e"></span>
-              <span class="legend-label">Walking</span>
+          <div id="legendContent">
+            <div id="speedLegend" style="display: none">
+              <div class="legend-item">
+                <span class="legend-color" style="background: #ef4444"></span>
+                <span class="legend-label">Stationary (&lt;1 m/s)</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color" style="background: #eab308"></span>
+                <span class="legend-label">Walking (1-5 m/s)</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color" style="background: #22c55e"></span>
+                <span class="legend-label">Cycling (5-15 m/s)</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color" style="background: #3b82f6"></span>
+                <span class="legend-label">Driving (&gt;15 m/s)</span>
+              </div>
             </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background: #f97316"></span>
-              <span class="legend-label">Running</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background: #8b5cf6"></span>
-              <span class="legend-label">Cycling</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background: #d946ef"></span>
-              <span class="legend-label">Motorcycling</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background: #3b82f6"></span>
-              <span class="legend-label">In Vehicle/Driving</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background: #a855f7"></span>
-              <span class="legend-label">In Subway</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background: #06b6d4"></span>
-              <span class="legend-label">In Rail Vehicle</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background: #f59e0b"></span>
-              <span class="legend-label">In Bus</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background: #ec4899"></span>
-              <span class="legend-label">Flying</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background: #ef4444"></span>
-              <span class="legend-label">Still</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-color" style="background: #9ca3af"></span>
-              <span class="legend-label">Unknown</span>
+            <div id="activityLegend" style="display: none">
+              <div class="legend-item">
+                <span class="legend-color" style="background: #22c55e"></span>
+                <span class="legend-label">Walking</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color" style="background: #f97316"></span>
+                <span class="legend-label">Running</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color" style="background: #8b5cf6"></span>
+                <span class="legend-label">Cycling</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color" style="background: #d946ef"></span>
+                <span class="legend-label">Motorcycling</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color" style="background: #3b82f6"></span>
+                <span class="legend-label">In Vehicle/Driving</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color" style="background: #a855f7"></span>
+                <span class="legend-label">In Subway</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color" style="background: #06b6d4"></span>
+                <span class="legend-label">In Rail Vehicle</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color" style="background: #f59e0b"></span>
+                <span class="legend-label">In Bus</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color" style="background: #ec4899"></span>
+                <span class="legend-label">Flying</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color" style="background: #ef4444"></span>
+                <span class="legend-label">Still</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-color" style="background: #9ca3af"></span>
+                <span class="legend-label">Unknown</span>
+              </div>
             </div>
           </div>
         </div>

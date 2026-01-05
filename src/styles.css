@@ -493,90 +493,96 @@ body {
   bottom: 0 !important;
 }
 
-.legend {
-  position: fixed;
-  bottom: 90px;
-  left: 50%;
-  transform: translateX(-50%);
+/* Legend Button */
+.legend-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
   z-index: 1000;
-  background: transparent;
-  min-width: 250px;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-}
-
-#legendContent {
   background: white;
-  padding: 12px;
-  max-height: 0;
-  overflow: hidden;
-  border: 1px solid #e1e4e8;
-  border-bottom: none;
-  border-radius: 8px 8px 0 0;
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.12),
-    0 1px 2px rgba(0, 0, 0, 0.24);
-  transition: max-height 0.15s ease;
-  order: 1;
-}
-
-.legend.expanded #legendContent {
-  max-height: 350px;
-  overflow-y: auto;
-}
-
-#legendHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 14px;
-  cursor: pointer;
-  user-select: none;
-  background: white;
-  border: 1px solid #e1e4e8;
-  border-radius: 8px;
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.12),
-    0 1px 2px rgba(0, 0, 0, 0.24);
-  order: 2;
-}
-
-.legend.expanded #legendHeader {
-  border-radius: 0 0 8px 8px;
-  border-top: none;
-}
-
-#legendHeader:hover {
-  background: #fafafa;
-}
-
-#legendHeader h4 {
-  font-size: 11px;
-  margin: 0;
-  color: #1a1a1a;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 12px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  color: #333;
+  cursor: pointer;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+  transition: all 0.15s ease;
 }
 
-#legendChevron {
-  color: #6b6b6b;
-  transition: transform 0.3s ease;
-  opacity: 0.7;
+.legend-btn:hover {
+  background: #f4f4f4;
+}
+
+/* Legend Modal */
+.legend-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-#legendChevron svg {
-  width: 14px;
-  height: 14px;
+.legend-modal-content {
+  background: white;
+  border-radius: 8px;
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+  max-width: 500px;
+  max-height: 80vh;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
 }
 
-.legend.minimized #legendChevron {
-  transform: rotate(180deg);
+.legend-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e1e4e8;
+}
+
+.legend-modal-header h4 {
+  font-size: 16px;
+  margin: 0;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.legend-close-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  line-height: 1;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.legend-close-btn:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+#legendContent {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .legend-item {

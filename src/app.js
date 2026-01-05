@@ -829,22 +829,22 @@ document.getElementById('useRawData').addEventListener('change', function (e) {
   }
 });
 
-// Update legend visibility based on color mode
+// Update legend button visibility based on color mode
 function updateLegendVisibility() {
-  const legend = document.getElementById('legend');
+  const legendBtn = document.getElementById('legendBtn');
   const speedLegend = document.getElementById('speedLegend');
   const activityLegend = document.getElementById('activityLegend');
 
   if (routeColorMode === 'speed') {
-    legend.style.display = 'block';
+    legendBtn.style.display = 'block';
     speedLegend.style.display = 'block';
     activityLegend.style.display = 'none';
   } else if (routeColorMode === 'activity') {
-    legend.style.display = 'block';
+    legendBtn.style.display = 'block';
     speedLegend.style.display = 'none';
     activityLegend.style.display = 'block';
   } else {
-    legend.style.display = 'none';
+    legendBtn.style.display = 'none';
   }
 }
 
@@ -972,15 +972,19 @@ document.getElementById('consoleHeader').addEventListener('click', function () {
   }
 });
 
-// Legend expand/collapse handler
-document.getElementById('legendHeader').addEventListener('click', function () {
-  const legendDiv = document.getElementById('legend');
-  if (legendDiv.classList.contains('minimized')) {
-    legendDiv.classList.remove('minimized');
-    legendDiv.classList.add('expanded');
-  } else {
-    legendDiv.classList.remove('expanded');
-    legendDiv.classList.add('minimized');
+// Legend modal handlers
+document.getElementById('legendBtn').addEventListener('click', function () {
+  document.getElementById('legendModal').style.display = 'flex';
+});
+
+document.getElementById('legendCloseBtn').addEventListener('click', function () {
+  document.getElementById('legendModal').style.display = 'none';
+});
+
+// Close modal when clicking outside
+document.getElementById('legendModal').addEventListener('click', function (e) {
+  if (e.target === this) {
+    this.style.display = 'none';
   }
 });
 
@@ -1108,7 +1112,6 @@ function initIcons() {
   document.getElementById('nextDateBtn').innerHTML = icons.chevronRight;
   document.getElementById('controlsChevron').innerHTML = icons.chevronDown;
   document.getElementById('consoleChevron').innerHTML = icons.chevronDown;
-  document.getElementById('legendChevron').innerHTML = icons.chevronDown;
 }
 
 // Initialize app
