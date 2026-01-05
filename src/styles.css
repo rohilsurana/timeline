@@ -230,6 +230,22 @@ body {
   letter-spacing: 0.8px;
 }
 
+/* Disabled checkbox styling */
+input[type='checkbox']:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input[type='checkbox']:disabled + span {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+label:has(input[type='checkbox']:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 #fileInput {
   display: none;
 }

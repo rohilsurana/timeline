@@ -377,8 +377,16 @@ function extractRawSignal(signal) {
 function parseTimelineJSON(jsonData, useRaw = true) {
   const locations = [];
 
+  // Handle case where jsonData is directly an array of semantic segments (iOS export)
+  let semanticSegments = null;
+  if (Array.isArray(jsonData)) {
+    semanticSegments = jsonData;
+  } else if (jsonData.semanticSegments) {
+    semanticSegments = jsonData.semanticSegments;
+  }
+
   // Handle rawSignals (most detailed, raw GPS data) if enabled
-  if (useRaw && jsonData.rawSignals && jsonData.rawSignals.length > 0) {
+  if (useRaw && !Array.isArray(jsonData) && jsonData.rawSignals && jsonData.rawSignals.length > 0) {
     jsonData.rawSignals.forEach(signal => {
       const loc = extractRawSignal(signal);
       if (loc) {
@@ -387,10 +395,10 @@ function parseTimelineJSON(jsonData, useRaw = true) {
     });
   }
   // Fallback to semanticSegments if raw disabled or no rawSignals
-  else if (jsonData.semanticSegments) {
+  else if (semanticSegments) {
     // First pass: collect activity time ranges
     const activityRanges = [];
-    jsonData.semanticSegments.forEach(segment => {
+    semanticSegments.forEach(segment => {
       if (segment.activity || segment.visit) {
         activityRanges.push({
           start: parseTimestamp(segment.startTime).getTime(),
@@ -400,7 +408,7 @@ function parseTimelineJSON(jsonData, useRaw = true) {
     });
 
     // Second pass: extract locations, skipping standalone paths that overlap with activities
-    jsonData.semanticSegments.forEach(segment => {
+    semanticSegments.forEach(segment => {
       // Check if this is a standalone timelinePath segment (no activity or visit)
       if (segment.timelinePath && !segment.activity && !segment.visit) {
         const segmentStart = parseTimestamp(segment.startTime).getTime();
@@ -423,7 +431,7 @@ function parseTimelineJSON(jsonData, useRaw = true) {
     });
   }
   // Handle old format (timelineObjects)
-  else if (jsonData.timelineObjects) {
+  else if (!Array.isArray(jsonData) && jsonData.timelineObjects) {
     jsonData.timelineObjects.forEach(obj => {
       locations.push(...extractLocations(obj));
     });
@@ -757,7 +765,21 @@ if ([...timezoneSelect.options].some(opt => opt.value === userTimezone)) {
 // Load timeline data from parsed JSON
 async function loadTimelineData(jsonData, filename, saveToCache = true) {
   rawJsonData = jsonData;
-  const useRaw = document.getElementById('useRawData').checked;
+
+  // Check if raw data is available
+  const hasRawData = !Array.isArray(jsonData) && jsonData.rawSignals && jsonData.rawSignals.length > 0;
+  const useRawCheckbox = document.getElementById('useRawData');
+
+  if (!hasRawData) {
+    // No raw data available, disable checkbox and uncheck it
+    useRawCheckbox.checked = false;
+    useRawCheckbox.disabled = true;
+  } else {
+    // Raw data available, enable checkbox
+    useRawCheckbox.disabled = false;
+  }
+
+  const useRaw = useRawCheckbox.checked;
   timelineData = parseTimelineJSON(rawJsonData, useRaw);
 
   if (timelineData.length === 0) {
