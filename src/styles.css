@@ -494,9 +494,10 @@ body {
 }
 
 .legend {
-  position: absolute;
-  bottom: 110px;
-  right: 20px;
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1000;
   background: white;
   border-radius: 8px;
@@ -504,9 +505,12 @@ body {
     0 1px 3px rgba(0, 0, 0, 0.12),
     0 1px 2px rgba(0, 0, 0, 0.24);
   border: 1px solid #e1e4e8;
-  max-width: 250px;
+  min-width: 250px;
+  max-width: 400px;
   transition: max-height 0.15s ease;
-  overflow: hidden;
+  overflow: visible;
+  display: flex;
+  flex-direction: column-reverse;
 }
 
 .legend.minimized {
@@ -524,9 +528,9 @@ body {
   padding: 10px 14px;
   cursor: pointer;
   user-select: none;
-  border-bottom: 1px solid #f0f0f0;
+  border-top: 1px solid #f0f0f0;
   background: white;
-  border-radius: 8px 8px 0 0;
+  border-radius: 0 0 8px 8px;
 }
 
 #legendHeader:hover {
@@ -556,7 +560,7 @@ body {
   height: 14px;
 }
 
-.legend.expanded #legendChevron {
+.legend.minimized #legendChevron {
   transform: rotate(180deg);
 }
 
@@ -564,6 +568,7 @@ body {
   padding: 12px;
   max-height: 350px;
   overflow-y: auto;
+  border-radius: 8px 8px 0 0;
 }
 
 .legend.minimized #legendContent {
