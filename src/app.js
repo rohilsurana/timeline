@@ -795,6 +795,25 @@ document.getElementById('useRawData').addEventListener('change', function (e) {
   }
 });
 
+// Update legend visibility based on color mode
+function updateLegendVisibility() {
+  const legend = document.getElementById('legend');
+  const speedLegend = document.getElementById('speedLegend');
+  const activityLegend = document.getElementById('activityLegend');
+
+  if (routeColorMode === 'speed') {
+    legend.style.display = 'block';
+    speedLegend.style.display = 'block';
+    activityLegend.style.display = 'none';
+  } else if (routeColorMode === 'activity') {
+    legend.style.display = 'block';
+    speedLegend.style.display = 'none';
+    activityLegend.style.display = 'block';
+  } else {
+    legend.style.display = 'none';
+  }
+}
+
 // Route color mode handler
 document.getElementById('routeColorMode').addEventListener('change', function (e) {
   routeColorMode = e.target.value;
@@ -803,6 +822,8 @@ document.getElementById('routeColorMode').addEventListener('change', function (e
   // Update map to re-render with new color mode
   const currentProgress = parseFloat(document.getElementById('timeSlider').value) / 100;
   updateMap(currentProgress);
+  // Update legend visibility
+  updateLegendVisibility();
 });
 
 // Date selector handler
@@ -914,6 +935,18 @@ document.getElementById('consoleHeader').addEventListener('click', function () {
   } else {
     consoleDiv.classList.remove('expanded');
     consoleDiv.classList.add('minimized');
+  }
+});
+
+// Legend expand/collapse handler
+document.getElementById('legendHeader').addEventListener('click', function () {
+  const legendDiv = document.getElementById('legend');
+  if (legendDiv.classList.contains('minimized')) {
+    legendDiv.classList.remove('minimized');
+    legendDiv.classList.add('expanded');
+  } else {
+    legendDiv.classList.remove('expanded');
+    legendDiv.classList.add('minimized');
   }
 });
 
@@ -1041,6 +1074,7 @@ function initIcons() {
   document.getElementById('nextDateBtn').innerHTML = icons.chevronRight;
   document.getElementById('controlsChevron').innerHTML = icons.chevronDown;
   document.getElementById('consoleChevron').innerHTML = icons.chevronDown;
+  document.getElementById('legendChevron').innerHTML = icons.chevronDown;
 }
 
 // Initialize app
