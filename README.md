@@ -236,6 +236,8 @@ Contributions are welcome! Here's how you can help:
 
 MIT License - see [LICENSE](LICENSE) file for details
 
+Copyright © 2025 Rohil Surana
+
 ## Acknowledgments
 
 - [Leaflet](https://leafletjs.com/) for the excellent mapping library
@@ -252,4 +254,27 @@ If you encounter issues or have questions:
 
 ---
 
-**Note**: This is an unofficial tool and is not affiliated with Google. Google Maps Timeline, Google Takeout, and related services are trademarks of Google LLC.
+## Disclaimers
+
+### Trademarks
+This is an **unofficial, independent tool** and is **not affiliated with, endorsed by, or sponsored by Google LLC or Alphabet Inc.**
+
+- Google®, Google Maps™, Google Timeline™, and Google Takeout™ are trademarks of Google LLC
+- All product names, logos, and brands are property of their respective owners
+- The use of these trademarks does not imply any affiliation with or endorsement by the trademark holders
+
+### Map Data & Attribution
+- Map tiles and data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors
+- Maps powered by [Leaflet](https://leafletjs.com/)
+- Map data is licensed under the [Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/)
+- Cartography licensed under [CC BY-SA](https://creativecommons.org/licenses/by-sa/2.0/)
+
+### Privacy & Data Usage
+- This application processes your location data **entirely in your web browser**
+- No data is sent to any server or third party
+- All data processing happens locally on your device
+- You maintain full control and ownership of your data
+- See the [Privacy & Data Security](#privacy--data-security) section for more details
+
+### No Warranty
+This software is provided "as is" without warranty of any kind, express or implied. Use at your own risk. The authors and contributors are not liable for any damages or data loss that may occur from using this software.
