@@ -34,6 +34,7 @@ function getActivityColor(activity) {
     WALKING: '#22c55e', // green
     RUNNING: '#f97316', // orange
     CYCLING: '#8b5cf6', // purple
+    MOTORCYCLING: '#d946ef', // fuchsia
     IN_VEHICLE: '#3b82f6', // blue
     IN_ROAD_VEHICLE: '#3b82f6', // blue
     IN_RAIL_VEHICLE: '#06b6d4', // cyan
@@ -130,14 +131,11 @@ function extractLocations(segment) {
 
     // Add waypoints if available
     if (segment.timelinePath && segment.timelinePath.length > 0) {
-      // Calculate time intervals for each waypoint
-      const timePerPoint = (endTime - startTime) / (segment.timelinePath.length - 1 || 1);
-
-      segment.timelinePath.forEach((point, idx) => {
-        if (point.point) {
+      segment.timelinePath.forEach(point => {
+        if (point.point && point.time) {
           const lat = parseFloat(point.point.split(',')[0].replace('geo:', ''));
           const lng = parseFloat(point.point.split(',')[1]);
-          const pointTime = new Date(startTime.getTime() + timePerPoint * idx);
+          const pointTime = parseTimestamp(point.time);
           locations.push({
             lat: lat,
             lng: lng,
@@ -150,31 +148,30 @@ function extractLocations(segment) {
     }
     // Fallback to start/end locations if no timelinePath
     else {
-      if (segment.startLocation) {
+      if (activity.start) {
+        const latLng = activity.start.latLng.split(',');
         locations.push({
-          lat: parseFloat(segment.startLocation.latLng.split(',')[0]),
-          lng: parseFloat(segment.startLocation.latLng.split(',')[1]),
+          lat: parseFloat(latLng[0]),
+          lng: parseFloat(latLng[1]),
           timestamp: startTime,
           type: 'activity',
           activity: activityType,
-          name: segment.startLocation.name,
         });
       }
-      if (segment.endLocation) {
+      if (activity.end) {
+        const latLng = activity.end.latLng.split(',');
         locations.push({
-          lat: parseFloat(segment.endLocation.latLng.split(',')[0]),
-          lng: parseFloat(segment.endLocation.latLng.split(',')[1]),
+          lat: parseFloat(latLng[0]),
+          lng: parseFloat(latLng[1]),
           timestamp: endTime,
           type: 'activity',
           activity: activityType,
-          name: segment.endLocation.name,
         });
       }
     }
   }
-
   // Handle place visit
-  if (segment.visit) {
+  else if (segment.visit) {
     const visit = segment.visit;
     const startTime = parseTimestamp(segment.startTime);
     if (visit.topCandidate && visit.topCandidate.placeLocation) {
@@ -189,8 +186,26 @@ function extractLocations(segment) {
           visit.topCandidate.placeLocation.address ||
           'Unknown Place',
         placeId: visit.topCandidate.placeId,
+        semanticType: visit.topCandidate.semanticType,
       });
     }
+  }
+  // Handle standalone timelinePath segments (no activity or visit)
+  else if (segment.timelinePath && segment.timelinePath.length > 0) {
+    segment.timelinePath.forEach(point => {
+      if (point.point && point.time) {
+        const lat = parseFloat(point.point.split(',')[0].replace('geo:', ''));
+        const lng = parseFloat(point.point.split(',')[1]);
+        const pointTime = parseTimestamp(point.time);
+        locations.push({
+          lat: lat,
+          lng: lng,
+          timestamp: pointTime,
+          type: 'path',
+          activity: 'UNKNOWN',
+        });
+      }
+    });
   }
 
   // Fallback for old format (timelineObjects)
@@ -592,12 +607,18 @@ function updateMap(progress) {
 
   // Display activity - prioritize activity field over type
   let activityText = '-';
-  if (currentData.activity) {
+  if (currentData.activity && currentData.activity !== 'UNKNOWN') {
     activityText = currentData.activity;
   } else if (currentData.type === 'place') {
-    activityText = 'Place Visit';
+    activityText = currentData.semanticType
+      ? `${currentData.semanticType} (Place Visit)`
+      : 'Place Visit';
   } else if (currentData.type === 'raw') {
     activityText = 'Raw GPS';
+  } else if (currentData.type === 'path') {
+    activityText = 'Movement (Unknown Activity)';
+  } else if (currentData.type === 'activity') {
+    activityText = currentData.activity || 'Movement';
   } else {
     activityText = currentData.type || '-';
   }
