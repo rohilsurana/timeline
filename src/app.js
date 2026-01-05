@@ -36,9 +36,13 @@ function getActivityColor(activity) {
     CYCLING: '#8b5cf6', // purple
     MOTORCYCLING: '#d946ef', // fuchsia
     IN_VEHICLE: '#3b82f6', // blue
+    IN_PASSENGER_VEHICLE: '#3b82f6', // blue
     IN_ROAD_VEHICLE: '#3b82f6', // blue
-    IN_RAIL_VEHICLE: '#06b6d4', // cyan
     DRIVING: '#3b82f6', // blue
+    IN_SUBWAY: '#a855f7', // purple
+    IN_RAIL_VEHICLE: '#06b6d4', // cyan
+    IN_BUS: '#f59e0b', // amber
+    FLYING: '#ec4899', // pink
     STILL: '#ef4444', // red
     UNKNOWN: '#9ca3af', // gray
   };
