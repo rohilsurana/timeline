@@ -388,7 +388,37 @@ function parseTimelineJSON(jsonData, useRaw = true) {
   }
   // Fallback to semanticSegments if raw disabled or no rawSignals
   else if (jsonData.semanticSegments) {
+    // First pass: collect activity time ranges
+    const activityRanges = [];
     jsonData.semanticSegments.forEach(segment => {
+      if (segment.activity || segment.visit) {
+        activityRanges.push({
+          start: parseTimestamp(segment.startTime).getTime(),
+          end: parseTimestamp(segment.endTime).getTime(),
+        });
+      }
+    });
+
+    // Second pass: extract locations, skipping standalone paths that overlap with activities
+    jsonData.semanticSegments.forEach(segment => {
+      // Check if this is a standalone timelinePath segment (no activity or visit)
+      if (segment.timelinePath && !segment.activity && !segment.visit) {
+        const segmentStart = parseTimestamp(segment.startTime).getTime();
+        const segmentEnd = parseTimestamp(segment.endTime).getTime();
+
+        // Skip if this overlaps with any activity/visit segment
+        const overlaps = activityRanges.some(
+          range =>
+            (segmentStart >= range.start && segmentStart <= range.end) ||
+            (segmentEnd >= range.start && segmentEnd <= range.end) ||
+            (segmentStart <= range.start && segmentEnd >= range.end)
+        );
+
+        if (overlaps) {
+          return; // Skip this standalone path segment
+        }
+      }
+
       locations.push(...extractLocations(segment));
     });
   }
