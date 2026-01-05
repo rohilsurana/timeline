@@ -1156,6 +1156,24 @@ function initIcons() {
   document.getElementById('controlsChevron').innerHTML = icons.chevronDown;
   document.getElementById('consoleChevron').innerHTML = icons.chevronDown;
   document.getElementById('helpIcon').innerHTML = icons.help;
+
+  // Help modal icons
+  document.getElementById('helpIconAndroid').innerHTML = icons.smartphone;
+  document.getElementById('helpIconIOS').innerHTML = icons.smartphone;
+  document.getElementById('helpIconDesktop').innerHTML = icons.monitor;
+  document.getElementById('helpIconUpload').innerHTML = icons.upload;
+  document.getElementById('helpIconSettings').innerHTML = icons.settings;
+  document.getElementById('helpIconActivity').innerHTML = icons.activity;
+  document.getElementById('helpIconSpeed').innerHTML = icons.zap;
+
+  // Help modal chevrons
+  document.getElementById('helpChevronAndroid').innerHTML = icons.chevronDown;
+  document.getElementById('helpChevronIOS').innerHTML = icons.chevronDown;
+  document.getElementById('helpChevronDesktop').innerHTML = icons.chevronDown;
+  document.getElementById('helpChevronUpload').innerHTML = icons.chevronDown;
+  document.getElementById('helpChevronSettings').innerHTML = icons.chevronDown;
+  document.getElementById('helpChevronActivity').innerHTML = icons.chevronDown;
+  document.getElementById('helpChevronSpeed').innerHTML = icons.chevronDown;
 }
 
 // Initialize app
