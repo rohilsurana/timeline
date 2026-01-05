@@ -1022,14 +1022,22 @@ document.getElementById('helpBtn').addEventListener('click', function () {
   document.getElementById('helpModal').style.display = 'flex';
 });
 
-document.getElementById('helpCloseBtn').addEventListener('click', function () {
+async function closeHelpModal() {
   document.getElementById('helpModal').style.display = 'none';
-});
+  // Save preference that user has closed the help modal
+  try {
+    await saveToDB('helpModalClosed', true);
+  } catch {
+    // Silently fail if DB not available
+  }
+}
+
+document.getElementById('helpCloseBtn').addEventListener('click', closeHelpModal);
 
 // Close modal when clicking outside
 document.getElementById('helpModal').addEventListener('click', function (e) {
   if (e.target === this) {
-    this.style.display = 'none';
+    closeHelpModal();
   }
 });
 
@@ -1209,6 +1217,12 @@ async function initApp() {
     const savedFilename = await loadFromDB('timelineFilename');
     if (savedData && savedFilename) {
       await loadTimelineData(savedData, savedFilename, false);
+    }
+
+    // Check if help modal should be shown (show by default on first visit)
+    const helpModalClosed = await loadFromDB('helpModalClosed').catch(() => null);
+    if (!helpModalClosed) {
+      document.getElementById('helpModal').style.display = 'flex';
     }
   } catch {
     // Silently fail if DB not available
