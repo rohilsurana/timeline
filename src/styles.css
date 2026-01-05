@@ -257,7 +257,8 @@ body {
 }
 
 #dateSelect,
-#timezoneSelect {
+#timezoneSelect,
+#routeColorMode {
   width: 100%;
   padding: 9px 12px;
   border: 1px solid #e1e4e8;
@@ -269,12 +270,14 @@ body {
 }
 
 #dateSelect:hover,
-#timezoneSelect:hover {
+#timezoneSelect:hover,
+#routeColorMode:hover {
   border-color: #c1c8d1;
 }
 
 #dateSelect:focus,
-#timezoneSelect:focus {
+#timezoneSelect:focus,
+#routeColorMode:focus {
   outline: none;
   border-color: #5e6ad2;
   box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.1);
@@ -484,11 +487,6 @@ body {
 .leaflet-control-zoom {
   margin-bottom: 110px !important;
   margin-right: 20px !important;
-}
-
-.leaflet-control-attribution {
-  margin-bottom: 95px !important;
-  margin-right: 5px !important;
 }
 
 .leaflet-bottom.leaflet-right {

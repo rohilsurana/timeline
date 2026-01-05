@@ -4,6 +4,7 @@ let map;
 let routeLayer;
 let currentMarker;
 let currentPolyline = null;
+let currentPolylineSegments = [];
 let timelineData = [];
 let currentDateData = [];
 let selectedTimezone = 'UTC';
@@ -13,6 +14,35 @@ let playInterval = null;
 let isPlaying = false;
 let db = null;
 let lastRenderedIndex = -1;
+let routeColorMode = 'none';
+
+// Color utility functions
+function getSpeedColor(speed) {
+  // Speed in meters per second
+  // < 1 m/s (3.6 km/h) = red (stationary/very slow)
+  // 1-5 m/s (3.6-18 km/h) = yellow (walking/slow)
+  // 5-15 m/s (18-54 km/h) = green (cycling/moderate)
+  // > 15 m/s (> 54 km/h) = blue (driving/fast)
+  if (speed < 1) return '#ef4444'; // red
+  if (speed < 5) return '#eab308'; // yellow
+  if (speed < 15) return '#22c55e'; // green
+  return '#3b82f6'; // blue
+}
+
+function getActivityColor(activity) {
+  const activityColors = {
+    WALKING: '#22c55e', // green
+    RUNNING: '#f97316', // orange
+    CYCLING: '#8b5cf6', // purple
+    IN_VEHICLE: '#3b82f6', // blue
+    IN_ROAD_VEHICLE: '#3b82f6', // blue
+    IN_RAIL_VEHICLE: '#06b6d4', // cyan
+    DRIVING: '#3b82f6', // blue
+    STILL: '#ef4444', // red
+    UNKNOWN: '#9ca3af', // gray
+  };
+  return activityColors[activity] || '#4285f4'; // default blue
+}
 
 // Initialize IndexedDB
 function initDB() {
@@ -472,24 +502,60 @@ function updateMap(progress) {
 
   // Only update polyline if we've moved to a new data point
   if (targetIndex !== lastRenderedIndex) {
-    // Build complete route up to current point
-    const routePoints = [];
-    for (let i = 0; i <= targetIndex; i++) {
-      routePoints.push([currentDateData[i].lat, currentDateData[i].lng]);
-    }
-
-    // Remove old polyline and add new one
+    // Remove old polylines
     if (currentPolyline) {
       routeLayer.removeLayer(currentPolyline);
+      currentPolyline = null;
     }
-    if (routePoints.length > 1) {
-      currentPolyline = L.polyline(routePoints, {
-        color: '#4285f4',
-        weight: 4,
-        opacity: 0.7,
-        smoothFactor: 1,
-      });
-      routeLayer.addLayer(currentPolyline);
+    currentPolylineSegments.forEach(segment => routeLayer.removeLayer(segment));
+    currentPolylineSegments = [];
+
+    // Build colored route segments
+    if (routeColorMode === 'none') {
+      // Single color polyline
+      const routePoints = [];
+      for (let i = 0; i <= targetIndex; i++) {
+        routePoints.push([currentDateData[i].lat, currentDateData[i].lng]);
+      }
+      if (routePoints.length > 1) {
+        currentPolyline = L.polyline(routePoints, {
+          color: '#4285f4',
+          weight: 4,
+          opacity: 0.7,
+          smoothFactor: 1,
+        });
+        routeLayer.addLayer(currentPolyline);
+      }
+    } else {
+      // Multi-colored segments
+      for (let i = 0; i < targetIndex; i++) {
+        const point1 = currentDateData[i];
+        const point2 = currentDateData[i + 1];
+        const segmentPoints = [
+          [point1.lat, point1.lng],
+          [point2.lat, point2.lng],
+        ];
+
+        let color = '#4285f4';
+        if (routeColorMode === 'speed') {
+          // Calculate speed between points
+          const timeDiff = (point2.timestamp - point1.timestamp) / 1000; // seconds
+          const distance = map.distance([point1.lat, point1.lng], [point2.lat, point2.lng]); // meters
+          const speed = timeDiff > 0 ? distance / timeDiff : 0;
+          color = getSpeedColor(speed);
+        } else if (routeColorMode === 'activity') {
+          color = getActivityColor(point1.activity || point1.type);
+        }
+
+        const segment = L.polyline(segmentPoints, {
+          color: color,
+          weight: 4,
+          opacity: 0.7,
+          smoothFactor: 1,
+        });
+        routeLayer.addLayer(segment);
+        currentPolylineSegments.push(segment);
+      }
     }
 
     lastRenderedIndex = targetIndex;
@@ -688,6 +754,16 @@ document.getElementById('useRawData').addEventListener('change', function (e) {
   } else if (availableDates.length > 0) {
     loadDate(availableDates[0]);
   }
+});
+
+// Route color mode handler
+document.getElementById('routeColorMode').addEventListener('change', function (e) {
+  routeColorMode = e.target.value;
+  // Force re-render by resetting lastRenderedIndex
+  lastRenderedIndex = -1;
+  // Update map to re-render with new color mode
+  const currentProgress = parseFloat(document.getElementById('timeSlider').value) / 100;
+  updateMap(currentProgress);
 });
 
 // Date selector handler
