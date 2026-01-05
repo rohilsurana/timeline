@@ -866,24 +866,7 @@ document.getElementById('useRawData').addEventListener('change', function (e) {
   }
 });
 
-// Update legend button visibility based on color mode
-function updateLegendVisibility() {
-  const legendBtn = document.getElementById('legendBtn');
-  const speedLegend = document.getElementById('speedLegend');
-  const activityLegend = document.getElementById('activityLegend');
-
-  if (routeColorMode === 'speed') {
-    legendBtn.style.display = 'block';
-    speedLegend.style.display = 'block';
-    activityLegend.style.display = 'none';
-  } else if (routeColorMode === 'activity') {
-    legendBtn.style.display = 'block';
-    speedLegend.style.display = 'none';
-    activityLegend.style.display = 'block';
-  } else {
-    legendBtn.style.display = 'none';
-  }
-}
+// Help button is always visible, no need for visibility logic
 
 // Route color mode handler
 document.getElementById('routeColorMode').addEventListener('change', function (e) {
@@ -893,8 +876,6 @@ document.getElementById('routeColorMode').addEventListener('change', function (e
   // Update map to re-render with new color mode
   const currentProgress = parseFloat(document.getElementById('timeSlider').value) / 100;
   updateMap(currentProgress);
-  // Update legend visibility
-  updateLegendVisibility();
   // Update slider gradient
   updateSliderGradient();
 });
@@ -1014,20 +995,40 @@ document.getElementById('consoleHeader').addEventListener('click', function () {
   }
 });
 
-// Legend modal handlers
-document.getElementById('legendBtn').addEventListener('click', function () {
-  document.getElementById('legendModal').style.display = 'flex';
+// Help modal handlers
+document.getElementById('helpBtn').addEventListener('click', function () {
+  document.getElementById('helpModal').style.display = 'flex';
 });
 
-document.getElementById('legendCloseBtn').addEventListener('click', function () {
-  document.getElementById('legendModal').style.display = 'none';
+document.getElementById('helpCloseBtn').addEventListener('click', function () {
+  document.getElementById('helpModal').style.display = 'none';
 });
 
 // Close modal when clicking outside
-document.getElementById('legendModal').addEventListener('click', function (e) {
+document.getElementById('helpModal').addEventListener('click', function (e) {
   if (e.target === this) {
     this.style.display = 'none';
   }
+});
+
+// Help collapsible sections handler
+document.querySelectorAll('.help-collapsible-header').forEach((header) => {
+  header.addEventListener('click', function () {
+    const collapsible = this.parentElement;
+    collapsible.classList.toggle('expanded');
+  });
+});
+
+// Smooth scroll to sections from table of contents
+document.querySelectorAll('.help-toc a').forEach((link) => {
+  link.addEventListener('click', function (e) {
+    e.preventDefault();
+    const targetId = this.getAttribute('href').substring(1);
+    const targetElement = document.getElementById(targetId);
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
 });
 
 // Slider handler
@@ -1154,6 +1155,7 @@ function initIcons() {
   document.getElementById('nextDateBtn').innerHTML = icons.chevronRight;
   document.getElementById('controlsChevron').innerHTML = icons.chevronDown;
   document.getElementById('consoleChevron').innerHTML = icons.chevronDown;
+  document.getElementById('helpIcon').innerHTML = icons.help;
 }
 
 // Initialize app
