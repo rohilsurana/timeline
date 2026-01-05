@@ -55,8 +55,15 @@ The app recognizes and color-codes the following activities:
 
 ### From iOS Device
 
-1. **Using Google Takeout (Only Method)**
-   - Google Maps Timeline data is stored in your Google account, not locally on iOS
+1. **Using Google Maps App**
+   - Open Google Maps app
+   - Tap your profile picture → **Your Timeline**
+   - Tap the three dots (⋯) → **Settings and privacy**
+   - Scroll to **Export Timeline data**
+   - Choose date range and format (JSON)
+   - Download the exported file
+
+2. **Using Google Takeout**
    - Follow the same **Google Takeout** steps as Android (above)
    - The process is identical regardless of which device you use Google Maps on
 
