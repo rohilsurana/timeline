@@ -131,27 +131,29 @@
                   <span class="help-chevron" id="helpChevronAndroid"></span>
                 </button>
                 <div class="help-collapsible-content">
-                  <h4>Method 1: Google Takeout (Recommended)</h4>
-                  <ol>
-                    <li>Go to <a href="https://takeout.google.com/" target="_blank">takeout.google.com</a></li>
-                    <li>Deselect all products, then select <strong>"Location History"</strong></li>
-                    <li>Click "All location history data included"</li>
-                    <li>Select <strong>"Timeline"</strong> format (JSON)</li>
-                    <li>Click "Next step" and choose your export settings</li>
-                    <li>Click "Create export" and wait for the email</li>
-                    <li>Download and extract the ZIP file</li>
-                    <li>Find <code>Timeline.json</code> in the <code>Location History/Timeline</code> folder</li>
-                  </ol>
+                  <div>
+                    <h4>Method 1: Google Takeout (Recommended)</h4>
+                    <ol>
+                      <li>Go to <a href="https://takeout.google.com/" target="_blank">takeout.google.com</a></li>
+                      <li>Deselect all products, then select <strong>"Location History"</strong></li>
+                      <li>Click "All location history data included"</li>
+                      <li>Select <strong>"Timeline"</strong> format (JSON)</li>
+                      <li>Click "Next step" and choose your export settings</li>
+                      <li>Click "Create export" and wait for the email</li>
+                      <li>Download and extract the ZIP file</li>
+                      <li>Find <code>Timeline.json</code> in the <code>Location History/Timeline</code> folder</li>
+                    </ol>
 
-                  <h4>Method 2: Google Maps App</h4>
-                  <ol>
-                    <li>Open Google Maps app</li>
-                    <li>Tap your profile picture → <strong>Your Timeline</strong></li>
-                    <li>Tap the three dots (⋮) → <strong>Settings and privacy</strong></li>
-                    <li>Scroll to <strong>Export Timeline data</strong></li>
-                    <li>Choose date range and format (JSON)</li>
-                    <li>Download the exported file</li>
-                  </ol>
+                    <h4>Method 2: Google Maps App</h4>
+                    <ol>
+                      <li>Open Google Maps app</li>
+                      <li>Tap your profile picture → <strong>Your Timeline</strong></li>
+                      <li>Tap the three dots (⋮) → <strong>Settings and privacy</strong></li>
+                      <li>Scroll to <strong>Export Timeline data</strong></li>
+                      <li>Choose date range and format (JSON)</li>
+                      <li>Download the exported file</li>
+                    </ol>
+                  </div>
                 </div>
               </div>
 
@@ -163,12 +165,14 @@
                   <span class="help-chevron" id="helpChevronIOS"></span>
                 </button>
                 <div class="help-collapsible-content">
-                  <p>Google Maps Timeline data is stored in your Google account, not locally on iOS.</p>
-                  <ol>
-                    <li>Go to <a href="https://takeout.google.com/" target="_blank">takeout.google.com</a></li>
-                    <li>Follow the same <strong>Google Takeout</strong> steps as Android above</li>
-                    <li>The process is identical regardless of which device you use Google Maps on</li>
-                  </ol>
+                  <div>
+                    <p>Google Maps Timeline data is stored in your Google account, not locally on iOS.</p>
+                    <ol>
+                      <li>Go to <a href="https://takeout.google.com/" target="_blank">takeout.google.com</a></li>
+                      <li>Follow the same <strong>Google Takeout</strong> steps as Android above</li>
+                      <li>The process is identical regardless of which device you use Google Maps on</li>
+                    </ol>
+                  </div>
                 </div>
               </div>
 
@@ -180,21 +184,23 @@
                   <span class="help-chevron" id="helpChevronDesktop"></span>
                 </button>
                 <div class="help-collapsible-content">
-                  <ol>
-                    <li>Open <a href="https://takeout.google.com/" target="_blank">takeout.google.com</a> in your browser</li>
-                    <li>Sign in to your Google account</li>
-                    <li>Click "Deselect all" to uncheck everything</li>
-                    <li>Scroll down and check <strong>"Location History"</strong></li>
-                    <li>Click "All location history data included"</li>
-                    <li>Select only <strong>"Timeline"</strong> (uncheck other options)</li>
-                    <li>Choose <strong>JSON</strong> format</li>
-                    <li>Click "OK" then "Next step"</li>
-                    <li>Choose export frequency (one-time) and file size</li>
-                    <li>Click "Create export"</li>
-                    <li>Wait for email notification (can take hours for large datasets)</li>
-                    <li>Download and extract the ZIP file</li>
-                    <li>Locate <code>Timeline.json</code> in the extracted folder</li>
-                  </ol>
+                  <div>
+                    <ol>
+                      <li>Open <a href="https://takeout.google.com/" target="_blank">takeout.google.com</a> in your browser</li>
+                      <li>Sign in to your Google account</li>
+                      <li>Click "Deselect all" to uncheck everything</li>
+                      <li>Scroll down and check <strong>"Location History"</strong></li>
+                      <li>Click "All location history data included"</li>
+                      <li>Select only <strong>"Timeline"</strong> (uncheck other options)</li>
+                      <li>Choose <strong>JSON</strong> format</li>
+                      <li>Click "OK" then "Next step"</li>
+                      <li>Choose export frequency (one-time) and file size</li>
+                      <li>Click "Create export"</li>
+                      <li>Wait for email notification (can take hours for large datasets)</li>
+                      <li>Download and extract the ZIP file</li>
+                      <li>Locate <code>Timeline.json</code> in the extracted folder</li>
+                    </ol>
+                  </div>
                 </div>
               </div>
             </div>
@@ -210,14 +216,16 @@
                   <span class="help-chevron" id="helpChevronUpload"></span>
                 </button>
                 <div class="help-collapsible-content">
-                  <ol>
-                    <li>Click <strong>"Choose File"</strong> in the controls panel</li>
-                    <li>Select your <code>Timeline.json</code> file</li>
-                    <li>Wait for the file to load (may take a moment for large files)</li>
-                    <li>Select a date from the <strong>"Select Date"</strong> dropdown</li>
-                    <li>Your timeline will appear on the map!</li>
-                  </ol>
-                  <p><strong>Note:</strong> All processing happens in your browser. Your data never leaves your device.</p>
+                  <div>
+                    <ol>
+                      <li>Click <strong>"Choose File"</strong> in the controls panel</li>
+                      <li>Select your <code>Timeline.json</code> file</li>
+                      <li>Wait for the file to load (may take a moment for large files)</li>
+                      <li>Select a date from the <strong>"Select Date"</strong> dropdown</li>
+                      <li>Your timeline will appear on the map!</li>
+                    </ol>
+                    <p><strong>Note:</strong> All processing happens in your browser. Your data never leaves your device.</p>
+                  </div>
                 </div>
               </div>
 
@@ -228,20 +236,22 @@
                   <span class="help-chevron" id="helpChevronSettings"></span>
                 </button>
                 <div class="help-collapsible-content">
-                  <ul>
-                    <li><strong>Timezone:</strong> View your timeline in different timezones</li>
-                    <li><strong>Use Raw GPS Data:</strong> Toggle between detailed GPS data and semantic segments</li>
-                    <li><strong>Route Color Mode:</strong>
-                      <ul>
-                        <li><em>Single Color:</em> Default blue route</li>
-                        <li><em>Speed-based:</em> Colors based on movement speed (red→yellow→green→blue)</li>
-                        <li><em>Activity-based:</em> Colors based on activity type (walking, driving, flying, etc.)</li>
-                      </ul>
-                    </li>
-                    <li><strong>Play Button:</strong> Animate your day's timeline</li>
-                    <li><strong>Time Slider:</strong> Scrub through your day manually</li>
-                    <li><strong>Date Navigation:</strong> Use arrow buttons to move between dates</li>
-                  </ul>
+                  <div>
+                    <ul>
+                      <li><strong>Timezone:</strong> View your timeline in different timezones</li>
+                      <li><strong>Use Raw GPS Data:</strong> Toggle between detailed GPS data and semantic segments</li>
+                      <li><strong>Route Color Mode:</strong>
+                        <ul>
+                          <li><em>Single Color:</em> Default blue route</li>
+                          <li><em>Speed-based:</em> Colors based on movement speed (red→yellow→green→blue)</li>
+                          <li><em>Activity-based:</em> Colors based on activity type (walking, driving, flying, etc.)</li>
+                        </ul>
+                      </li>
+                      <li><strong>Play Button:</strong> Animate your day's timeline</li>
+                      <li><strong>Time Slider:</strong> Scrub through your day manually</li>
+                      <li><strong>Date Navigation:</strong> Use arrow buttons to move between dates</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
@@ -257,49 +267,51 @@
                   <span class="help-chevron" id="helpChevronActivity"></span>
                 </button>
                 <div class="help-collapsible-content">
-                  <div class="legend-item">
-                    <span class="legend-color" style="background: #22c55e"></span>
-                    <span class="legend-label">Walking</span>
-                  </div>
-                  <div class="legend-item">
-                    <span class="legend-color" style="background: #f97316"></span>
-                    <span class="legend-label">Running</span>
-                  </div>
-                  <div class="legend-item">
-                    <span class="legend-color" style="background: #8b5cf6"></span>
-                    <span class="legend-label">Cycling</span>
-                  </div>
-                  <div class="legend-item">
-                    <span class="legend-color" style="background: #d946ef"></span>
-                    <span class="legend-label">Motorcycling</span>
-                  </div>
-                  <div class="legend-item">
-                    <span class="legend-color" style="background: #3b82f6"></span>
-                    <span class="legend-label">In Vehicle/Driving</span>
-                  </div>
-                  <div class="legend-item">
-                    <span class="legend-color" style="background: #a855f7"></span>
-                    <span class="legend-label">In Subway</span>
-                  </div>
-                  <div class="legend-item">
-                    <span class="legend-color" style="background: #06b6d4"></span>
-                    <span class="legend-label">In Rail Vehicle</span>
-                  </div>
-                  <div class="legend-item">
-                    <span class="legend-color" style="background: #f59e0b"></span>
-                    <span class="legend-label">In Bus</span>
-                  </div>
-                  <div class="legend-item">
-                    <span class="legend-color" style="background: #ec4899"></span>
-                    <span class="legend-label">Flying</span>
-                  </div>
-                  <div class="legend-item">
-                    <span class="legend-color" style="background: #ef4444"></span>
-                    <span class="legend-label">Still</span>
-                  </div>
-                  <div class="legend-item">
-                    <span class="legend-color" style="background: #9ca3af"></span>
-                    <span class="legend-label">Unknown</span>
+                  <div>
+                    <div class="legend-item">
+                      <span class="legend-color" style="background: #22c55e"></span>
+                      <span class="legend-label">Walking</span>
+                    </div>
+                    <div class="legend-item">
+                      <span class="legend-color" style="background: #f97316"></span>
+                      <span class="legend-label">Running</span>
+                    </div>
+                    <div class="legend-item">
+                      <span class="legend-color" style="background: #8b5cf6"></span>
+                      <span class="legend-label">Cycling</span>
+                    </div>
+                    <div class="legend-item">
+                      <span class="legend-color" style="background: #d946ef"></span>
+                      <span class="legend-label">Motorcycling</span>
+                    </div>
+                    <div class="legend-item">
+                      <span class="legend-color" style="background: #3b82f6"></span>
+                      <span class="legend-label">In Vehicle/Driving</span>
+                    </div>
+                    <div class="legend-item">
+                      <span class="legend-color" style="background: #a855f7"></span>
+                      <span class="legend-label">In Subway</span>
+                    </div>
+                    <div class="legend-item">
+                      <span class="legend-color" style="background: #06b6d4"></span>
+                      <span class="legend-label">In Rail Vehicle</span>
+                    </div>
+                    <div class="legend-item">
+                      <span class="legend-color" style="background: #f59e0b"></span>
+                      <span class="legend-label">In Bus</span>
+                    </div>
+                    <div class="legend-item">
+                      <span class="legend-color" style="background: #ec4899"></span>
+                      <span class="legend-label">Flying</span>
+                    </div>
+                    <div class="legend-item">
+                      <span class="legend-color" style="background: #ef4444"></span>
+                      <span class="legend-label">Still</span>
+                    </div>
+                    <div class="legend-item">
+                      <span class="legend-color" style="background: #9ca3af"></span>
+                      <span class="legend-label">Unknown</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -311,21 +323,23 @@
                   <span class="help-chevron" id="helpChevronSpeed"></span>
                 </button>
                 <div class="help-collapsible-content">
-                  <div class="legend-item">
-                    <span class="legend-color" style="background: #ef4444"></span>
-                    <span class="legend-label">Stationary (&lt;1 m/s)</span>
-                  </div>
-                  <div class="legend-item">
-                    <span class="legend-color" style="background: #eab308"></span>
-                    <span class="legend-label">Walking (1-5 m/s)</span>
-                  </div>
-                  <div class="legend-item">
-                    <span class="legend-color" style="background: #22c55e"></span>
-                    <span class="legend-label">Cycling (5-15 m/s)</span>
-                  </div>
-                  <div class="legend-item">
-                    <span class="legend-color" style="background: #3b82f6"></span>
-                    <span class="legend-label">Driving (&gt;15 m/s)</span>
+                  <div>
+                    <div class="legend-item">
+                      <span class="legend-color" style="background: #ef4444"></span>
+                      <span class="legend-label">Stationary (&lt;1 m/s)</span>
+                    </div>
+                    <div class="legend-item">
+                      <span class="legend-color" style="background: #eab308"></span>
+                      <span class="legend-label">Walking (1-5 m/s)</span>
+                    </div>
+                    <div class="legend-item">
+                      <span class="legend-color" style="background: #22c55e"></span>
+                      <span class="legend-label">Cycling (5-15 m/s)</span>
+                    </div>
+                    <div class="legend-item">
+                      <span class="legend-color" style="background: #3b82f6"></span>
+                      <span class="legend-label">Driving (&gt;15 m/s)</span>
+                    </div>
                   </div>
                 </div>
               </div>

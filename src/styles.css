@@ -779,15 +779,24 @@ body {
 }
 
 .help-collapsible-content {
-  max-height: 0;
+  display: grid;
+  grid-template-rows: 0fr;
   overflow: hidden;
-  transition: max-height 0.3s ease;
+  transition: grid-template-rows 0.3s ease;
 }
 
 .help-collapsible.expanded .help-collapsible-content {
-  max-height: 2000px;
-  padding: 16px;
+  grid-template-rows: 1fr;
+}
+
+.help-collapsible-content > * {
+  min-height: 0;
+  padding: 0 16px;
   background: white;
+}
+
+.help-collapsible.expanded .help-collapsible-content > * {
+  padding: 16px;
 }
 
 .legend-item {
