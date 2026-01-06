@@ -919,50 +919,23 @@ async function loadTimelineData(jsonData, filename, saveToCache = true) {
 
   const useRaw = useRawCheckbox.checked;
 
-  // Detect large files by checking raw data count (avoid stringifying entire JSON)
   const rawSignalCount = jsonData.rawSignals?.length || 0;
   const semanticSegmentCount = jsonData.semanticSegments?.length || 0;
-  const isLargeFile = rawSignalCount > 10000 || semanticSegmentCount > 1000;
+  console.log(`Loading file with ${rawSignalCount} raw signals, ${semanticSegmentCount} semantic segments`);
 
-  if (isLargeFile) {
-    console.log('Large file detected, using optimized parsing...');
-    console.log(`Raw signals: ${rawSignalCount}, Semantic segments: ${semanticSegmentCount}`);
+  // Show loading indicator for all files
+  showLoadingIndicator('Processing timeline data...');
 
-    // Show loading indicator
-    showLoadingIndicator('Processing timeline data...');
-
-    try {
-      // Only parse dates without loading all location data
-      availableDates = await getUniqueDatesFromRaw(jsonData, useRaw);
-      if (availableDates.length === 0) {
-        hideLoadingIndicator();
-        alert('No location data found in file');
-        return;
-      }
-    } finally {
+  try {
+    // Parse dates asynchronously (lazy loading - parse data per date on-demand)
+    availableDates = await getUniqueDatesFromRaw(jsonData, useRaw);
+    if (availableDates.length === 0) {
       hideLoadingIndicator();
-    }
-  } else {
-    // For small files, parse all data upfront
-    timelineData = parseTimelineJSON(rawJsonData, useRaw);
-
-    if (timelineData.length === 0) {
       alert('No location data found in file');
       return;
     }
-
-    // Populate date selector
-    availableDates = getUniqueDates(timelineData);
-
-    // Save to IndexedDB (only for small files)
-    if (saveToCache) {
-      try {
-        await saveToDB('timelineData', jsonData);
-        await saveToDB('timelineFilename', filename);
-      } catch {
-        // Silently fail if DB not available
-      }
-    }
+  } finally {
+    hideLoadingIndicator();
   }
 
   // Update filename display
@@ -1095,17 +1068,13 @@ function updateDateNavButtons(currentDate) {
 
 // Load specific date
 async function loadDate(dateStr) {
-  // For large files, parse only the specific date's data on-demand
-  if (!timelineData || timelineData.length === 0) {
-    showLoadingIndicator('Loading date data...');
-    try {
-      const useRaw = document.getElementById('useRawData').checked;
-      currentDateData = await parseTimelineJSONForDate(rawJsonData, dateStr, useRaw);
-    } finally {
-      hideLoadingIndicator();
-    }
-  } else {
-    currentDateData = filterByDate(timelineData, dateStr);
+  // Always parse the specific date's data on-demand (lazy loading)
+  showLoadingIndicator('Loading date data...');
+  try {
+    const useRaw = document.getElementById('useRawData').checked;
+    currentDateData = await parseTimelineJSONForDate(rawJsonData, dateStr, useRaw);
+  } finally {
+    hideLoadingIndicator();
   }
 
   if (currentDateData.length === 0) {
