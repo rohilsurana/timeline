@@ -483,6 +483,7 @@ async function getUniqueDatesFromRaw(jsonData, useRaw) {
 
     // Process in chunks to avoid blocking
     const chunkSize = 10000;
+    let processedCount = 0;
     for (let i = 0; i < totalSignals; i += chunkSize) {
       const end = Math.min(i + chunkSize, totalSignals);
 
@@ -495,11 +496,17 @@ async function getUniqueDatesFromRaw(jsonData, useRaw) {
         }
       }
 
+      processedCount += (end - i);
+      if (processedCount % 50000 === 0) {
+        console.log(`Processed ${processedCount} / ${totalSignals} signals, found ${dates.size} dates`);
+      }
+
       // Yield to browser every chunk
       if (i + chunkSize < totalSignals) {
         await new Promise(resolve => setTimeout(resolve, 0));
       }
     }
+    console.log(`Finished processing. Found ${dates.size} unique dates`);
   } else {
     // Use semantic segments (much faster)
     const segments = Array.isArray(jsonData) ? jsonData : jsonData.semanticSegments;
@@ -553,7 +560,9 @@ async function parseTimelineJSONForDate(jsonData, dateStr, useRaw = true) {
   if (useRaw && jsonData.rawSignals && jsonData.rawSignals.length > 0) {
     const totalSignals = jsonData.rawSignals.length;
     const chunkSize = 10000;
+    console.log(`Parsing ${totalSignals} raw signals for date ${dateStr}`);
 
+    let processedCount = 0;
     for (let i = 0; i < totalSignals; i += chunkSize) {
       const end = Math.min(i + chunkSize, totalSignals);
 
@@ -568,11 +577,17 @@ async function parseTimelineJSONForDate(jsonData, dateStr, useRaw = true) {
         }
       }
 
+      processedCount += (end - i);
+      if (processedCount % 100000 === 0) {
+        console.log(`Processed ${processedCount} / ${totalSignals} signals, found ${locations.length} locations for this date`);
+      }
+
       // Yield to browser every chunk
       if (i + chunkSize < totalSignals) {
         await new Promise(resolve => setTimeout(resolve, 0));
       }
     }
+    console.log(`Finished parsing. Found ${locations.length} locations for ${dateStr}`);
   }
   // Handle semantic segments
   else {
