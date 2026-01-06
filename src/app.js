@@ -461,6 +461,47 @@ function getUniqueDates(data) {
   return Array.from(dates).sort();
 }
 
+// Get unique dates from raw JSON without parsing all location data (for large files)
+function getUniqueDatesFromRaw(jsonData, useRaw) {
+  const dates = new Set();
+
+  // Sample timestamps to extract dates
+  const extractDateFromTimestamp = (timestamp) => {
+    const date = new Date(timestamp).toLocaleString('en-US', {
+      timeZone: selectedTimezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const parts = date.split(',')[0].split('/');
+    return `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+  };
+
+  if (useRaw && jsonData.rawSignals && jsonData.rawSignals.length > 0) {
+    // Sample every 100th raw signal for performance
+    const sampleRate = Math.max(1, Math.floor(jsonData.rawSignals.length / 1000));
+    for (let i = 0; i < jsonData.rawSignals.length; i += sampleRate) {
+      const signal = jsonData.rawSignals[i];
+      const timestamp = signal.position?.timestamp || signal.timestamp;
+      if (timestamp) {
+        dates.add(extractDateFromTimestamp(timestamp));
+      }
+    }
+  } else {
+    // Use semantic segments
+    const segments = Array.isArray(jsonData) ? jsonData : jsonData.semanticSegments;
+    if (segments) {
+      segments.forEach(segment => {
+        if (segment.startTime) {
+          dates.add(extractDateFromTimestamp(segment.startTime));
+        }
+      });
+    }
+  }
+
+  return Array.from(dates).sort();
+}
+
 // Filter data by date in selected timezone
 function filterByDate(data, dateStr) {
   return data.filter(loc => {
@@ -474,6 +515,53 @@ function filterByDate(data, dateStr) {
     const isoDate = `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
     return isoDate === dateStr;
   });
+}
+
+// Parse timeline data for a specific date only (for large files)
+function parseTimelineJSONForDate(jsonData, dateStr, useRaw = true) {
+  const locations = [];
+  const [targetYear, targetMonth, targetDay] = dateStr.split('-').map(Number);
+
+  // Helper to check if timestamp matches target date
+  const isTargetDate = (timestamp) => {
+    const date = new Date(timestamp).toLocaleString('en-US', {
+      timeZone: selectedTimezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const parts = date.split(',')[0].split('/');
+    const isoDate = `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+    return isoDate === dateStr;
+  };
+
+  // Handle raw signals
+  if (useRaw && jsonData.rawSignals && jsonData.rawSignals.length > 0) {
+    jsonData.rawSignals.forEach(signal => {
+      const timestamp = signal.position?.timestamp || signal.timestamp;
+      if (timestamp && isTargetDate(timestamp)) {
+        const loc = extractRawSignal(signal);
+        if (loc) {
+          locations.push(loc);
+        }
+      }
+    });
+  }
+  // Handle semantic segments
+  else {
+    const segments = Array.isArray(jsonData) ? jsonData : jsonData.semanticSegments;
+    if (segments) {
+      segments.forEach(segment => {
+        if (segment.startTime && isTargetDate(segment.startTime)) {
+          locations.push(...extractLocations(segment));
+        }
+      });
+    }
+  }
+
+  // Sort by timestamp
+  locations.sort((a, b) => a.timestamp - b.timestamp);
+  return locations;
 }
 
 // Interpolate between two points
@@ -610,12 +698,20 @@ function updateMap(progress) {
     currentPolylineSegments.forEach(segment => routeLayer.removeLayer(segment));
     currentPolylineSegments = [];
 
+    // Simplify data for performance when there are too many points
+    const maxPoints = 1000; // Limit polyline segments for performance
+    const step = Math.max(1, Math.floor(targetIndex / maxPoints));
+
     // Build colored route segments
     if (routeColorMode === 'none') {
-      // Single color polyline
+      // Single color polyline - sample points for performance
       const routePoints = [];
-      for (let i = 0; i <= targetIndex; i++) {
+      for (let i = 0; i <= targetIndex; i += step) {
         routePoints.push([currentDateData[i].lat, currentDateData[i].lng]);
+      }
+      // Always include the last point
+      if (targetIndex % step !== 0) {
+        routePoints.push([currentDateData[targetIndex].lat, currentDateData[targetIndex].lng]);
       }
       if (routePoints.length > 1) {
         currentPolyline = L.polyline(routePoints, {
@@ -627,10 +723,10 @@ function updateMap(progress) {
         routeLayer.addLayer(currentPolyline);
       }
     } else {
-      // Multi-colored segments
-      for (let i = 0; i < targetIndex; i++) {
+      // Multi-colored segments - sample for performance
+      for (let i = 0; i < targetIndex; i += step) {
         const point1 = currentDateData[i];
-        const point2 = currentDateData[i + 1];
+        const point2 = currentDateData[Math.min(i + step, targetIndex)];
         const segmentPoints = [
           [point1.lat, point1.lng],
           [point2.lat, point2.lng],
@@ -780,28 +876,43 @@ async function loadTimelineData(jsonData, filename, saveToCache = true) {
   }
 
   const useRaw = useRawCheckbox.checked;
-  timelineData = parseTimelineJSON(rawJsonData, useRaw);
 
-  if (timelineData.length === 0) {
-    alert('No location data found in file');
-    return;
+  // For large files (>50MB), skip full parsing and save to IndexedDB to avoid hanging
+  const isLargeFile = JSON.stringify(jsonData).length > 50 * 1024 * 1024;
+
+  if (isLargeFile) {
+    console.log('Large file detected, using optimized parsing...');
+    // Only parse dates without loading all location data
+    availableDates = getUniqueDatesFromRaw(jsonData, useRaw);
+    if (availableDates.length === 0) {
+      alert('No location data found in file');
+      return;
+    }
+  } else {
+    // For small files, parse all data upfront
+    timelineData = parseTimelineJSON(rawJsonData, useRaw);
+
+    if (timelineData.length === 0) {
+      alert('No location data found in file');
+      return;
+    }
+
+    // Populate date selector
+    availableDates = getUniqueDates(timelineData);
+
+    // Save to IndexedDB (only for small files)
+    if (saveToCache) {
+      try {
+        await saveToDB('timelineData', jsonData);
+        await saveToDB('timelineFilename', filename);
+      } catch {
+        // Silently fail if DB not available
+      }
+    }
   }
 
   // Update filename display
   document.getElementById('filename').textContent = filename;
-
-  // Save to IndexedDB
-  if (saveToCache) {
-    try {
-      await saveToDB('timelineData', jsonData);
-      await saveToDB('timelineFilename', filename);
-    } catch {
-      // Silently fail if DB not available
-    }
-  }
-
-  // Populate date selector
-  availableDates = getUniqueDates(timelineData);
   const dateSelect = document.getElementById('dateSelect');
   dateSelect.innerHTML = '';
   dateSelect.disabled = false;
@@ -930,7 +1041,13 @@ function updateDateNavButtons(currentDate) {
 
 // Load specific date
 async function loadDate(dateStr) {
-  currentDateData = filterByDate(timelineData, dateStr);
+  // For large files, parse only the specific date's data on-demand
+  if (!timelineData || timelineData.length === 0) {
+    const useRaw = document.getElementById('useRawData').checked;
+    currentDateData = parseTimelineJSONForDate(rawJsonData, dateStr, useRaw);
+  } else {
+    currentDateData = filterByDate(timelineData, dateStr);
+  }
 
   if (currentDateData.length === 0) {
     alert('No data for selected date');
