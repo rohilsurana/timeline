@@ -462,7 +462,7 @@ function getUniqueDates(data) {
 }
 
 // Get unique dates from raw JSON without parsing all location data (for large files)
-function getUniqueDatesFromRaw(jsonData, useRaw) {
+async function getUniqueDatesFromRaw(jsonData, useRaw) {
   const dates = new Set();
 
   // Sample timestamps to extract dates
@@ -478,19 +478,33 @@ function getUniqueDatesFromRaw(jsonData, useRaw) {
   };
 
   if (useRaw && jsonData.rawSignals && jsonData.rawSignals.length > 0) {
-    // Sample every 100th raw signal for performance
-    const sampleRate = Math.max(1, Math.floor(jsonData.rawSignals.length / 1000));
-    for (let i = 0; i < jsonData.rawSignals.length; i += sampleRate) {
-      const signal = jsonData.rawSignals[i];
-      const timestamp = signal.position?.timestamp || signal.timestamp;
-      if (timestamp) {
-        dates.add(extractDateFromTimestamp(timestamp));
+    const totalSignals = jsonData.rawSignals.length;
+    console.log(`Processing ${totalSignals} raw signals for dates`);
+
+    // Process in chunks to avoid blocking
+    const chunkSize = 10000;
+    for (let i = 0; i < totalSignals; i += chunkSize) {
+      const end = Math.min(i + chunkSize, totalSignals);
+
+      // Process chunk
+      for (let j = i; j < end; j++) {
+        const signal = jsonData.rawSignals[j];
+        const timestamp = signal.position?.timestamp || signal.timestamp;
+        if (timestamp) {
+          dates.add(extractDateFromTimestamp(timestamp));
+        }
+      }
+
+      // Yield to browser every chunk
+      if (i + chunkSize < totalSignals) {
+        await new Promise(resolve => setTimeout(resolve, 0));
       }
     }
   } else {
-    // Use semantic segments
+    // Use semantic segments (much faster)
     const segments = Array.isArray(jsonData) ? jsonData : jsonData.semanticSegments;
     if (segments) {
+      console.log(`Processing ${segments.length} semantic segments for dates`);
       segments.forEach(segment => {
         if (segment.startTime) {
           dates.add(extractDateFromTimestamp(segment.startTime));
@@ -518,7 +532,7 @@ function filterByDate(data, dateStr) {
 }
 
 // Parse timeline data for a specific date only (for large files)
-function parseTimelineJSONForDate(jsonData, dateStr, useRaw = true) {
+async function parseTimelineJSONForDate(jsonData, dateStr, useRaw = true) {
   const locations = [];
   const [targetYear, targetMonth, targetDay] = dateStr.split('-').map(Number);
 
@@ -537,15 +551,28 @@ function parseTimelineJSONForDate(jsonData, dateStr, useRaw = true) {
 
   // Handle raw signals
   if (useRaw && jsonData.rawSignals && jsonData.rawSignals.length > 0) {
-    jsonData.rawSignals.forEach(signal => {
-      const timestamp = signal.position?.timestamp || signal.timestamp;
-      if (timestamp && isTargetDate(timestamp)) {
-        const loc = extractRawSignal(signal);
-        if (loc) {
-          locations.push(loc);
+    const totalSignals = jsonData.rawSignals.length;
+    const chunkSize = 10000;
+
+    for (let i = 0; i < totalSignals; i += chunkSize) {
+      const end = Math.min(i + chunkSize, totalSignals);
+
+      for (let j = i; j < end; j++) {
+        const signal = jsonData.rawSignals[j];
+        const timestamp = signal.position?.timestamp || signal.timestamp;
+        if (timestamp && isTargetDate(timestamp)) {
+          const loc = extractRawSignal(signal);
+          if (loc) {
+            locations.push(loc);
+          }
         }
       }
-    });
+
+      // Yield to browser every chunk
+      if (i + chunkSize < totalSignals) {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      }
+    }
   }
   // Handle semantic segments
   else {
@@ -877,16 +904,28 @@ async function loadTimelineData(jsonData, filename, saveToCache = true) {
 
   const useRaw = useRawCheckbox.checked;
 
-  // For large files (>50MB), skip full parsing and save to IndexedDB to avoid hanging
-  const isLargeFile = JSON.stringify(jsonData).length > 50 * 1024 * 1024;
+  // Detect large files by checking raw data count (avoid stringifying entire JSON)
+  const rawSignalCount = jsonData.rawSignals?.length || 0;
+  const semanticSegmentCount = jsonData.semanticSegments?.length || 0;
+  const isLargeFile = rawSignalCount > 10000 || semanticSegmentCount > 1000;
 
   if (isLargeFile) {
     console.log('Large file detected, using optimized parsing...');
-    // Only parse dates without loading all location data
-    availableDates = getUniqueDatesFromRaw(jsonData, useRaw);
-    if (availableDates.length === 0) {
-      alert('No location data found in file');
-      return;
+    console.log(`Raw signals: ${rawSignalCount}, Semantic segments: ${semanticSegmentCount}`);
+
+    // Show loading indicator
+    showLoadingIndicator('Processing timeline data...');
+
+    try {
+      // Only parse dates without loading all location data
+      availableDates = await getUniqueDatesFromRaw(jsonData, useRaw);
+      if (availableDates.length === 0) {
+        hideLoadingIndicator();
+        alert('No location data found in file');
+        return;
+      }
+    } finally {
+      hideLoadingIndicator();
     }
   } else {
     // For small files, parse all data upfront
@@ -1043,8 +1082,13 @@ function updateDateNavButtons(currentDate) {
 async function loadDate(dateStr) {
   // For large files, parse only the specific date's data on-demand
   if (!timelineData || timelineData.length === 0) {
-    const useRaw = document.getElementById('useRawData').checked;
-    currentDateData = parseTimelineJSONForDate(rawJsonData, dateStr, useRaw);
+    showLoadingIndicator('Loading date data...');
+    try {
+      const useRaw = document.getElementById('useRawData').checked;
+      currentDateData = await parseTimelineJSONForDate(rawJsonData, dateStr, useRaw);
+    } finally {
+      hideLoadingIndicator();
+    }
   } else {
     currentDateData = filterByDate(timelineData, dateStr);
   }
@@ -1343,6 +1387,23 @@ async function initApp() {
     }
   } catch {
     // Silently fail if DB not available
+  }
+}
+
+// Loading indicator functions
+function showLoadingIndicator(message = 'Loading...') {
+  const indicator = document.getElementById('loadingIndicator');
+  const text = document.getElementById('loadingText');
+  if (indicator && text) {
+    text.textContent = message;
+    indicator.style.display = 'flex';
+  }
+}
+
+function hideLoadingIndicator() {
+  const indicator = document.getElementById('loadingIndicator');
+  if (indicator) {
+    indicator.style.display = 'none';
   }
 }
 
