@@ -1375,12 +1375,26 @@ async function initApp() {
 }
 
 // Loading indicator functions
+let loadingTimeout = null;
+
 function showLoadingIndicator(message = 'Loading...') {
   const indicator = document.getElementById('loadingIndicator');
   const text = document.getElementById('loadingText');
   if (indicator && text) {
     text.textContent = message;
     indicator.style.display = 'flex';
+
+    // Clear any existing timeout
+    if (loadingTimeout) {
+      clearTimeout(loadingTimeout);
+    }
+
+    // After 5 seconds, add additional message for large files
+    loadingTimeout = setTimeout(() => {
+      if (indicator.style.display === 'flex') {
+        text.innerHTML = message + '<br><span style="font-size: 13px; color: #666; margin-top: 8px; display: block;">This can take time for large files...</span>';
+      }
+    }, 5000);
   }
 }
 
@@ -1388,6 +1402,12 @@ function hideLoadingIndicator() {
   const indicator = document.getElementById('loadingIndicator');
   if (indicator) {
     indicator.style.display = 'none';
+  }
+
+  // Clear timeout when hiding
+  if (loadingTimeout) {
+    clearTimeout(loadingTimeout);
+    loadingTimeout = null;
   }
 }
 
