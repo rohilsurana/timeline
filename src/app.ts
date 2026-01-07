@@ -24,8 +24,8 @@ let playInterval: number | null = null;
 let loadingTimeout: number | null = null;
 
 // Map configuration
-// Get token from environment variable or use hardcoded token
-const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || 'YOUR_MAPBOX_ACCESS_TOKEN_HERE';
+// Token is injected via environment variable during build
+const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 let mapboxMap: MapboxMap | null = null;
 
 // Initialize IndexedDB
@@ -103,9 +103,9 @@ function hideLoadingIndicator(): void {
 
 // Initialize map
 async function initMap(): Promise<void> {
-  if (MAPBOX_ACCESS_TOKEN === 'YOUR_MAPBOX_ACCESS_TOKEN_HERE') {
-    console.error('Please set VITE_MAPBOX_TOKEN in .env file or hardcode your token in app.ts');
-    alert('Mapbox token not configured. Please check console for details.');
+  if (!MAPBOX_ACCESS_TOKEN) {
+    console.error('VITE_MAPBOX_TOKEN environment variable is not set');
+    alert('Mapbox token not configured. Please set VITE_MAPBOX_TOKEN environment variable.');
     return;
   }
 
