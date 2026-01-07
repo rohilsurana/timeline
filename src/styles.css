@@ -372,8 +372,8 @@ label:has(input[type='checkbox']:disabled) {
   color: white;
   border: none;
   border-radius: 50%;
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -384,8 +384,8 @@ label:has(input[type='checkbox']:disabled) {
 }
 
 #playBtn svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
 }
 
 #playBtn:hover {
@@ -467,41 +467,6 @@ label:has(input[type='checkbox']:disabled) {
   flex: 1;
 }
 
-.date-nav-btn {
-  background: #5e6ad2;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  flex-shrink: 0;
-  padding: 0;
-}
-
-.date-nav-btn svg {
-  width: 20px;
-  height: 20px;
-}
-
-.date-nav-btn:hover:not(:disabled) {
-  background: #4f5bd5;
-  transform: scale(1.05);
-}
-
-.date-nav-btn:active:not(:disabled) {
-  transform: scale(0.95);
-}
-
-.date-nav-btn:disabled {
-  background: #e1e4e8;
-  color: #9ca3af;
-  cursor: not-allowed;
-}
 
 #mapContainer {
   width: 100%;

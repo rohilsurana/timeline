@@ -213,19 +213,6 @@ function updateInfoPanel(location: LocationPoint, index: number, minute: number)
   }
 }
 
-// Update date navigation buttons
-function updateDateNavButtons(currentDate: string): void {
-  const currentIndex = state.availableDates.indexOf(currentDate);
-  const prevBtn = document.getElementById('prevDateBtn') as HTMLButtonElement;
-  const nextBtn = document.getElementById('nextDateBtn') as HTMLButtonElement;
-
-  if (prevBtn) {
-    prevBtn.disabled = currentIndex <= 0;
-  }
-  if (nextBtn) {
-    nextBtn.disabled = currentIndex >= state.availableDates.length - 1;
-  }
-}
 
 // Load timeline data
 async function loadTimelineData(
@@ -341,9 +328,6 @@ async function loadDate(dateStr: string): Promise<void> {
 
   // Update map
   updateMap(0);
-
-  // Update date navigation buttons
-  updateDateNavButtons(dateStr);
 
   // Save selected date
   try {
@@ -593,30 +577,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (currentValue && state.availableDates.includes(currentValue)) {
         dateSelect.value = currentValue;
       }
-    }
-  });
-
-  // Previous date button
-  document.getElementById('prevDateBtn')?.addEventListener('click', () => {
-    const dateSelect = document.getElementById('dateSelect') as HTMLSelectElement;
-    const currentDate = dateSelect.value;
-    const currentIndex = state.availableDates.indexOf(currentDate);
-    if (currentIndex > 0) {
-      const prevDate = state.availableDates[currentIndex - 1];
-      dateSelect.value = prevDate;
-      loadDate(prevDate);
-    }
-  });
-
-  // Next date button
-  document.getElementById('nextDateBtn')?.addEventListener('click', () => {
-    const dateSelect = document.getElementById('dateSelect') as HTMLSelectElement;
-    const currentDate = dateSelect.value;
-    const currentIndex = state.availableDates.indexOf(currentDate);
-    if (currentIndex < state.availableDates.length - 1) {
-      const nextDate = state.availableDates[currentIndex + 1];
-      dateSelect.value = nextDate;
-      loadDate(nextDate);
     }
   });
 
