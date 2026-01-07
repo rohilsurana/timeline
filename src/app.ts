@@ -597,6 +597,60 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateMap(currentProgress);
   });
 
+  // Use Raw Data checkbox
+  document.getElementById('useRawData')?.addEventListener('change', async () => {
+    if (!state.rawJsonData) return;
+
+    showLoadingIndicator('Switching data mode...');
+    try {
+      const useRaw = (document.getElementById('useRawData') as HTMLInputElement).checked;
+
+      // Reload available dates with new mode
+      state.availableDates = await getUniqueDatesFromRaw(state.rawJsonData, useRaw);
+
+      // Repopulate date selector
+      const dateSelect = document.getElementById('dateSelect') as HTMLSelectElement;
+      const currentValue = dateSelect.value;
+      dateSelect.innerHTML = '';
+
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = 'Select a date...';
+      placeholder.disabled = true;
+      dateSelect.appendChild(placeholder);
+
+      state.availableDates.forEach((date) => {
+        const option = document.createElement('option');
+        option.value = date;
+        option.textContent = new Date(date + 'T12:00:00').toLocaleDateString('en-US', {
+          timeZone: state.selectedTimezone,
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        });
+        dateSelect.appendChild(option);
+      });
+
+      // If current date still exists, reload it
+      if (currentValue && state.availableDates.includes(currentValue)) {
+        dateSelect.value = currentValue;
+        await loadDate(currentValue);
+      } else if (state.availableDates.length > 0) {
+        // Load first available date
+        dateSelect.value = state.availableDates[0];
+        await loadDate(state.availableDates[0]);
+      }
+
+      dateSelect.disabled = false;
+    } catch (error) {
+      console.error('Failed to switch data mode:', error);
+      alert('Failed to switch data mode');
+    } finally {
+      hideLoadingIndicator();
+    }
+  });
+
   // Timezone selector
   document.getElementById('timezoneSelect')?.addEventListener('change', (e) => {
     state.selectedTimezone = (e.target as HTMLSelectElement).value;
