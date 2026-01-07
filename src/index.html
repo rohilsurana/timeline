@@ -54,13 +54,6 @@
           <input type="file" id="fileInput" accept=".json" />
           <div class="filename" id="filename"></div>
         </div>
-
-        <div class="control-group">
-          <label for="dateSelect">Select Date</label>
-          <select id="dateSelect" disabled>
-            <option>Load a file first...</option>
-          </select>
-        </div>
       </div>
     </div>
 
@@ -74,6 +67,9 @@
     <div id="slider-container">
       <button id="prevDateBtn" class="date-nav-btn" disabled data-icon="chevronLeft"></button>
       <div id="sliderContent">
+        <select id="dateSelect" disabled>
+          <option>Load a file first...</option>
+        </select>
         <div id="timeDisplay">
           <button id="playBtn" data-icon="play"></button>
           <span id="timeText">00:00</span>
