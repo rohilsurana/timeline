@@ -164,11 +164,11 @@ function updateMap(minute: number): void {
 
   // Update info panel
   const currentLoc = state.currentDateData[targetIndex];
-  updateInfoPanel(currentLoc, targetIndex);
+  updateInfoPanel(currentLoc, targetIndex, minute);
 }
 
 // Update info panel
-function updateInfoPanel(location: LocationPoint, index: number): void {
+function updateInfoPanel(location: LocationPoint, index: number, minute: number): void {
   // Update console content
   const consoleContent = document.getElementById('consoleContent');
   if (consoleContent) {
@@ -203,15 +203,12 @@ function updateInfoPanel(location: LocationPoint, index: number): void {
     consoleContent.innerHTML = infoHTML;
   }
 
-  // Update time display in selected timezone
+  // Update time display based on slider minute value (not data point time)
   const timeText = document.getElementById('timeText');
   if (timeText) {
-    const timeStr = location.timestamp.toLocaleTimeString('en-US', {
-      timeZone: state.selectedTimezone,
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const hours = Math.floor(minute / 60);
+    const mins = minute % 60;
+    const timeStr = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
     timeText.textContent = timeStr;
   }
 }
