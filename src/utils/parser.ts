@@ -205,12 +205,16 @@ export async function getUniqueDatesFromRaw(
 export async function parseTimelineJSONForDate(
   jsonData: TimelineData,
   dateStr: string,
-  useRaw = true
+  useRaw = true,
+  timezone = 'UTC'
 ): Promise<LocationPoint[]> {
   const locations: LocationPoint[] = [];
 
+  // Helper to check if a timestamp falls within the target date in the given timezone
   const isTargetDate = (timestamp: string) => {
-    return extractDateFromTimestamp(timestamp) === dateStr;
+    const date = new Date(timestamp);
+    const dateInTz = date.toLocaleDateString('en-CA', { timeZone: timezone }); // YYYY-MM-DD format
+    return dateInTz === dateStr;
   };
 
   // Handle raw signals

@@ -169,13 +169,16 @@ function updateInfoPanel(location: LocationPoint, index: number): void {
     consoleContent.innerHTML = infoHTML;
   }
 
-  // Update time display
+  // Update time display in selected timezone
   const timeText = document.getElementById('timeText');
   if (timeText) {
-    const date = location.timestamp;
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    timeText.textContent = `${hours}:${minutes}`;
+    const timeStr = location.timestamp.toLocaleTimeString('en-US', {
+      timeZone: state.selectedTimezone,
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    timeText.textContent = timeStr;
   }
 }
 
@@ -281,7 +284,12 @@ async function loadDate(dateStr: string): Promise<void> {
   showLoadingIndicator('Loading date data...');
   try {
     const useRaw = (document.getElementById('useRawData') as HTMLInputElement).checked;
-    state.currentDateData = await parseTimelineJSONForDate(state.rawJsonData, dateStr, useRaw);
+    state.currentDateData = await parseTimelineJSONForDate(
+      state.rawJsonData,
+      dateStr,
+      useRaw,
+      state.selectedTimezone
+    );
   } finally {
     hideLoadingIndicator();
   }
