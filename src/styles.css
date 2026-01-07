@@ -285,6 +285,15 @@ label:has(input[type='checkbox']:disabled) {
   color: #1a1a1a;
 }
 
+/* Date selector in timeDisplay should not take full width */
+#timeDisplay #dateSelect {
+  width: auto;
+  min-width: 150px;
+  padding: 6px 10px;
+  font-size: 12px;
+  margin: 0 8px;
+}
+
 #dateSelect:hover,
 #timezoneSelect:hover,
 #routeColorMode:hover {
