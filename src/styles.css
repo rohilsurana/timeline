@@ -538,6 +538,12 @@ label:has(input[type='checkbox']:disabled) {
   bottom: 0 !important;
 }
 
+/* Mapbox Zoom Controls */
+.mapboxgl-ctrl-bottom-right {
+  bottom: 70px !important;
+  margin-bottom: 0 !important;
+}
+
 /* Help Button */
 .help-btn {
   position: absolute;
