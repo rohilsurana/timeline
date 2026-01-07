@@ -564,7 +564,7 @@ label:has(input[type='checkbox']:disabled) {
 
 /* Help Button */
 .help-btn {
-  background: #5e6ad2;
+  background: #6b7280;
   color: white;
   border: none;
   border-radius: 50%;
@@ -580,7 +580,7 @@ label:has(input[type='checkbox']:disabled) {
 }
 
 .help-btn:hover {
-  background: #4f5bd5;
+  background: #4b5563;
   transform: scale(1.05);
 }
 
