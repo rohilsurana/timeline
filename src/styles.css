@@ -290,8 +290,10 @@ label:has(input[type='checkbox']:disabled) {
   width: auto;
   min-width: 150px;
   padding: 6px 10px;
-  font-size: 12px;
+  font-size: 13px;
   margin: 0 8px;
+  height: auto;
+  align-self: center;
 }
 
 #dateSelect:hover,
@@ -404,7 +406,10 @@ label:has(input[type='checkbox']:disabled) {
 }
 
 #timeText {
-  flex: 1;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  line-height: 1;
 }
 
 #info {
