@@ -106,9 +106,9 @@ body {
     0 1px 3px rgba(0, 0, 0, 0.12),
     0 1px 2px rgba(0, 0, 0, 0.24);
   min-width: 350px;
+  max-width: 450px;
   font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
   font-size: 11px;
-  display: none;
   transition: max-height 0.15s ease;
   overflow: hidden;
   border: 1px solid #2d2d2d;
@@ -117,6 +117,10 @@ body {
 
 #console.minimized {
   max-height: 48px;
+}
+
+#console.minimized #consoleContent {
+  display: none;
 }
 
 #console.expanded {
