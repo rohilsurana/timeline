@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run generate-icons && vite build",
     "preview": "vite preview",
     "format": "prettier --write \"src/**/*.{js,css,html}\" \"*.js\"",
     "format:check": "prettier --check \"src/**/*.{js,css,html}\" \"*.js\"",
     "lint": "eslint \"src/**/*.js\" \"*.js\"",
-    "lint:fix": "eslint --fix \"src/**/*.js\" \"*.js\""
+    "lint:fix": "eslint --fix \"src/**/*.js\" \"*.js\"",
+    "generate-icons": "node scripts/generate-icons.js"
   },
   "keywords": [
     "maps",
@@ -24,8 +25,10 @@
     "@types/node": "^25.0.3",
     "eslint": "^9.39.2",
     "prettier": "^3.7.4",
+    "sharp": "^0.34.5",
     "vite": "^7.3.0",
-    "vite-plugin-dts": "^4.5.4"
+    "vite-plugin-dts": "^4.5.4",
+    "vite-plugin-pwa": "^1.2.0"
   },
   "dependencies": {
     "lucide-static": "^0.562.0",
