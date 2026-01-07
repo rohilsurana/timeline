@@ -135,29 +135,62 @@ function updateMap(progress: number): void {
 
 // Update info panel
 function updateInfoPanel(location: LocationPoint, index: number): void {
-  const infoDiv = document.getElementById('currentInfo');
-  if (!infoDiv) return;
+  // Update console content
+  const consoleContent = document.getElementById('consoleContent');
+  if (consoleContent) {
+    const timeStr = location.timestamp.toLocaleString('en-US', {
+      timeZone: state.selectedTimezone,
+      hour12: true,
+    });
 
-  const timeStr = location.timestamp.toLocaleString('en-US', {
-    timeZone: state.selectedTimezone,
-    hour12: true,
-  });
+    let infoHTML = `<div style="padding: 10px; font-size: 12px; line-height: 1.6;">`;
+    infoHTML += `<strong style="font-size: 13px;">${timeStr}</strong><br>`;
+    infoHTML += `<div style="margin-top: 8px;">`;
+    infoHTML += `Point ${index + 1} of ${state.currentDateData.length}<br>`;
+    infoHTML += `Lat: ${location.lat.toFixed(6)}, Lng: ${location.lng.toFixed(6)}<br>`;
 
-  let infoHTML = `<strong>${timeStr}</strong><br>`;
-  infoHTML += `Point ${index + 1} of ${state.currentDateData.length}<br>`;
-  infoHTML += `Lat: ${location.lat.toFixed(6)}, Lng: ${location.lng.toFixed(6)}<br>`;
+    if (location.type) {
+      infoHTML += `Type: ${location.type}<br>`;
+    }
+    if (location.activity) {
+      infoHTML += `Activity: ${location.activity}<br>`;
+    }
+    if (location.speed !== undefined) {
+      infoHTML += `Speed: ${(location.speed * 3.6).toFixed(1)} km/h<br>`;
+    }
+    if (location.accuracy) {
+      infoHTML += `Accuracy: ${location.accuracy}<br>`;
+    }
+    if (location.source) {
+      infoHTML += `Source: ${location.source}<br>`;
+    }
+    infoHTML += `</div></div>`;
 
-  if (location.activity) {
-    infoHTML += `Activity: ${location.activity}<br>`;
+    consoleContent.innerHTML = infoHTML;
   }
-  if (location.speed !== undefined) {
-    infoHTML += `Speed: ${(location.speed * 3.6).toFixed(1)} km/h<br>`;
-  }
-  if (location.accuracy) {
-    infoHTML += `Accuracy: ${location.accuracy}<br>`;
-  }
 
-  infoDiv.innerHTML = infoHTML;
+  // Update time display
+  const timeText = document.getElementById('timeText');
+  if (timeText) {
+    const date = location.timestamp;
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    timeText.textContent = `${hours}:${minutes}`;
+  }
+}
+
+// Update date navigation buttons
+function updateDateNavButtons(currentDate: string): void {
+  const currentIndex = state.availableDates.indexOf(currentDate);
+  const prevBtn = document.getElementById('prevDateBtn') as HTMLButtonElement;
+  const nextBtn = document.getElementById('nextDateBtn') as HTMLButtonElement;
+
+  if (prevBtn) {
+    prevBtn.disabled = currentIndex <= 0;
+  }
+  if (nextBtn) {
+    nextBtn.disabled = currentIndex >= state.availableDates.length - 1;
+  }
 }
 
 // Load timeline data
@@ -270,6 +303,9 @@ async function loadDate(dateStr: string): Promise<void> {
   // Update map
   updateMap(0);
 
+  // Update date navigation buttons
+  updateDateNavButtons(dateStr);
+
   // Save selected date
   try {
     await saveToDB('selectedDate', dateStr);
@@ -284,7 +320,12 @@ function startPlayback(): void {
 
   state.isPlaying = true;
   const playBtn = document.getElementById('playBtn');
-  if (playBtn) playBtn.textContent = 'Pause';
+  if (playBtn) playBtn.setAttribute('data-icon', 'pause');
+  // Re-initialize icon
+  const iconName = playBtn?.getAttribute('data-icon');
+  if (playBtn && iconName && icons[iconName as keyof typeof icons]) {
+    playBtn.innerHTML = icons[iconName as keyof typeof icons];
+  }
 
   const slider = document.getElementById('timeSlider') as HTMLInputElement;
   let currentValue = parseFloat(slider.value);
@@ -292,7 +333,9 @@ function startPlayback(): void {
   playInterval = window.setInterval(() => {
     currentValue += 0.5; // Adjust speed here
     if (currentValue >= 100) {
-      currentValue = 0;
+      // Stop at end instead of looping
+      stopPlayback();
+      return;
     }
     slider.value = currentValue.toString();
     updateMap(currentValue / 100);
@@ -304,7 +347,12 @@ function stopPlayback(): void {
 
   state.isPlaying = false;
   const playBtn = document.getElementById('playBtn');
-  if (playBtn) playBtn.textContent = 'Play';
+  if (playBtn) playBtn.setAttribute('data-icon', 'play');
+  // Re-initialize icon
+  const iconName = playBtn?.getAttribute('data-icon');
+  if (playBtn && iconName && icons[iconName as keyof typeof icons]) {
+    playBtn.innerHTML = icons[iconName as keyof typeof icons];
+  }
 
   if (playInterval) {
     clearInterval(playInterval);
@@ -418,6 +466,82 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (currentValue && state.availableDates.includes(currentValue)) {
         dateSelect.value = currentValue;
       }
+    }
+  });
+
+  // Previous date button
+  document.getElementById('prevDateBtn')?.addEventListener('click', () => {
+    const dateSelect = document.getElementById('dateSelect') as HTMLSelectElement;
+    const currentDate = dateSelect.value;
+    const currentIndex = state.availableDates.indexOf(currentDate);
+    if (currentIndex > 0) {
+      const prevDate = state.availableDates[currentIndex - 1];
+      dateSelect.value = prevDate;
+      loadDate(prevDate);
+    }
+  });
+
+  // Next date button
+  document.getElementById('nextDateBtn')?.addEventListener('click', () => {
+    const dateSelect = document.getElementById('dateSelect') as HTMLSelectElement;
+    const currentDate = dateSelect.value;
+    const currentIndex = state.availableDates.indexOf(currentDate);
+    if (currentIndex < state.availableDates.length - 1) {
+      const nextDate = state.availableDates[currentIndex + 1];
+      dateSelect.value = nextDate;
+      loadDate(nextDate);
+    }
+  });
+
+  // Console expand/collapse handler
+  document.getElementById('consoleHeader')?.addEventListener('click', () => {
+    const consoleDiv = document.getElementById('console');
+    if (consoleDiv?.classList.contains('minimized')) {
+      consoleDiv.classList.remove('minimized');
+      const chevron = document.getElementById('consoleChevron');
+      if (chevron) chevron.setAttribute('data-icon', 'chevronUp');
+      if (chevron && icons.chevronUp) chevron.innerHTML = icons.chevronUp;
+    } else {
+      consoleDiv?.classList.add('minimized');
+      const chevron = document.getElementById('consoleChevron');
+      if (chevron) chevron.setAttribute('data-icon', 'chevronDown');
+      if (chevron && icons.chevronDown) chevron.innerHTML = icons.chevronDown;
+    }
+  });
+
+  // Controls expand/collapse handler
+  document.getElementById('controlsHeader')?.addEventListener('click', () => {
+    const controlsDiv = document.getElementById('controls');
+    if (controlsDiv?.classList.contains('minimized')) {
+      controlsDiv.classList.remove('minimized');
+      controlsDiv.classList.add('expanded');
+      const chevron = document.getElementById('controlsChevron');
+      if (chevron) chevron.setAttribute('data-icon', 'chevronDown');
+      if (chevron && icons.chevronDown) chevron.innerHTML = icons.chevronDown;
+    } else {
+      controlsDiv?.classList.remove('expanded');
+      controlsDiv?.classList.add('minimized');
+      const chevron = document.getElementById('controlsChevron');
+      if (chevron) chevron.setAttribute('data-icon', 'chevronUp');
+      if (chevron && icons.chevronUp) chevron.innerHTML = icons.chevronUp;
+    }
+  });
+
+  // Help modal handlers
+  document.getElementById('helpBtn')?.addEventListener('click', () => {
+    const modal = document.getElementById('helpModal');
+    if (modal) modal.style.display = 'flex';
+  });
+
+  document.getElementById('helpCloseBtn')?.addEventListener('click', () => {
+    const modal = document.getElementById('helpModal');
+    if (modal) modal.style.display = 'none';
+  });
+
+  document.getElementById('helpModal')?.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('helpModal')) {
+      const modal = document.getElementById('helpModal');
+      if (modal) modal.style.display = 'none';
     }
   });
 });
