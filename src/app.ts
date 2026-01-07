@@ -167,42 +167,89 @@ function updateMap(minute: number): void {
   updateInfoPanel(currentLoc, targetIndex, minute);
 }
 
-// Update info panel
-function updateInfoPanel(location: LocationPoint, index: number, minute: number): void {
-  // Update console content
+// Update console with list of all data points
+function updateConsoleDataPoints(): void {
   const consoleContent = document.getElementById('consoleContent');
-  if (consoleContent) {
-    const timeStr = location.timestamp.toLocaleString('en-US', {
+  if (!consoleContent || state.currentDateData.length === 0) return;
+
+  let html = '';
+  state.currentDateData.forEach((location, index) => {
+    const timeStr = location.timestamp.toLocaleTimeString('en-US', {
       timeZone: state.selectedTimezone,
-      hour12: true,
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
     });
 
-    let infoHTML = `<div style="padding: 10px; font-size: 12px; line-height: 1.6;">`;
-    infoHTML += `<strong style="font-size: 13px;">${timeStr}</strong><br>`;
-    infoHTML += `<div style="margin-top: 8px;">`;
-    infoHTML += `Point ${index + 1} of ${state.currentDateData.length}<br>`;
-    infoHTML += `Lat: ${location.lat.toFixed(6)}, Lng: ${location.lng.toFixed(6)}<br>`;
+    let info = `${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`;
+    if (location.activity) info += ` • ${location.activity}`;
+    if (location.type) info += ` • ${location.type}`;
+    if (location.speed !== undefined) info += ` • ${(location.speed * 3.6).toFixed(1)} km/h`;
 
-    if (location.type) {
-      infoHTML += `Type: ${location.type}<br>`;
-    }
-    if (location.activity) {
-      infoHTML += `Activity: ${location.activity}<br>`;
-    }
-    if (location.speed !== undefined) {
-      infoHTML += `Speed: ${(location.speed * 3.6).toFixed(1)} km/h<br>`;
-    }
-    if (location.accuracy) {
-      infoHTML += `Accuracy: ${location.accuracy}<br>`;
-    }
-    if (location.source) {
-      infoHTML += `Source: ${location.source}<br>`;
-    }
-    infoHTML += `</div></div>`;
+    html += `<div class="data-point" data-index="${index}">`;
+    html += `<div class="data-point-time">${timeStr}</div>`;
+    html += `<div class="data-point-info">${info}</div>`;
+    html += `</div>`;
+  });
 
-    consoleContent.innerHTML = infoHTML;
+  consoleContent.innerHTML = html;
+
+  // Add click handlers to data points
+  consoleContent.querySelectorAll('.data-point').forEach((el) => {
+    el.addEventListener('click', () => {
+      const index = parseInt(el.getAttribute('data-index') || '0');
+      seekToDataPoint(index);
+    });
+  });
+
+  // Highlight current data point
+  highlightCurrentDataPoint();
+}
+
+// Seek timeline to specific data point
+function seekToDataPoint(index: number): void {
+  if (index < 0 || index >= state.currentDateData.length) return;
+
+  const location = state.currentDateData[index];
+
+  // Convert timestamp to minute of day in selected timezone
+  const timeStr = location.timestamp.toLocaleTimeString('en-US', {
+    timeZone: state.selectedTimezone,
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  const [hours, mins] = timeStr.split(':').map(Number);
+  const minute = hours * 60 + mins;
+
+  // Update slider and map
+  const slider = document.getElementById('timeSlider') as HTMLInputElement;
+  slider.value = minute.toString();
+  updateMap(minute);
+}
+
+// Highlight current data point in console
+function highlightCurrentDataPoint(): void {
+  const consoleContent = document.getElementById('consoleContent');
+  if (!consoleContent) return;
+
+  // Remove active class from all
+  consoleContent.querySelectorAll('.data-point').forEach((el) => {
+    el.classList.remove('active');
+  });
+
+  // Add active class to current
+  const currentPoint = consoleContent.querySelector(`.data-point[data-index="${state.lastRenderedIndex}"]`);
+  if (currentPoint) {
+    currentPoint.classList.add('active');
+    // Scroll into view
+    currentPoint.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
+}
 
+// Update info panel
+function updateInfoPanel(location: LocationPoint, index: number, minute: number): void {
   // Update time display based on slider minute value (not data point time)
   const timeText = document.getElementById('timeText');
   if (timeText) {
@@ -210,6 +257,12 @@ function updateInfoPanel(location: LocationPoint, index: number, minute: number)
     const mins = minute % 60;
     const timeStr = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
     timeText.textContent = timeStr;
+  }
+
+  // Highlight current data point in console if expanded
+  const consoleDiv = document.getElementById('console');
+  if (consoleDiv && !consoleDiv.classList.contains('minimized')) {
+    highlightCurrentDataPoint();
   }
 }
 
@@ -581,18 +634,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Console expand/collapse handler
-  document.getElementById('consoleHeader')?.addEventListener('click', () => {
+  document.getElementById('consoleToggle')?.addEventListener('click', () => {
     const consoleDiv = document.getElementById('console');
+    const toggleBtn = document.getElementById('consoleToggle');
+
     if (consoleDiv?.classList.contains('minimized')) {
       consoleDiv.classList.remove('minimized');
-      const chevron = document.getElementById('consoleChevron');
-      if (chevron) chevron.setAttribute('data-icon', 'chevronUp');
-      if (chevron && icons.chevronUp) chevron.innerHTML = icons.chevronUp;
+      if (toggleBtn) toggleBtn.setAttribute('data-icon', 'chevronRight');
+      if (toggleBtn && icons.chevronRight) toggleBtn.innerHTML = icons.chevronRight;
+      // Populate data points list
+      updateConsoleDataPoints();
     } else {
       consoleDiv?.classList.add('minimized');
-      const chevron = document.getElementById('consoleChevron');
-      if (chevron) chevron.setAttribute('data-icon', 'chevronDown');
-      if (chevron && icons.chevronDown) chevron.innerHTML = icons.chevronDown;
+      if (toggleBtn) toggleBtn.setAttribute('data-icon', 'chevronLeft');
+      if (toggleBtn && icons.chevronLeft) toggleBtn.innerHTML = icons.chevronLeft;
     }
   });
 
