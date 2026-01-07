@@ -15,6 +15,8 @@ let isPlaying = false;
 let db = null;
 let lastRenderedIndex = -1;
 let routeColorMode = 'none';
+let mapProvider = 'osm';
+let currentTileLayer = null;
 
 // Color utility functions
 function getSpeedColor(speed) {
@@ -91,11 +93,65 @@ function loadFromDB(key) {
   });
 }
 
+// Switch map tile layer
+async function switchMapProvider(provider, apiKey = null) {
+  if (provider === 'mappls') {
+    if (!apiKey || apiKey.trim() === '') {
+      alert('Please enter your Mappls API key to use Mappls maps');
+      document.getElementById('mapProvider').value = mapProvider;
+      return;
+    }
+
+    try {
+      showLoadingIndicator('Loading Mappls map...');
+
+      // Remove current tile layer
+      if (currentTileLayer) {
+        map.removeLayer(currentTileLayer);
+      }
+
+      // Add Mappls tile layer
+      // Using Mappls raster tiles format for Leaflet compatibility
+      currentTileLayer = L.tileLayer(
+        `https://apis.mappls.com/advancedmaps/v1/${apiKey}/map_tiles/{z}/{x}/{y}.png`,
+        {
+          attribution: '© <a href="https://www.mappls.com/">Mappls</a> | <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          maxZoom: 19,
+        }
+      ).addTo(map);
+
+      mapProvider = 'mappls';
+      await saveToDB('mapProvider', 'mappls');
+      await saveToDB('mapplsKey', apiKey);
+
+      hideLoadingIndicator();
+    } catch (error) {
+      hideLoadingIndicator();
+      alert('Failed to load Mappls map: ' + error.message);
+      document.getElementById('mapProvider').value = mapProvider;
+    }
+  } else {
+    // Switch to OpenStreetMap
+    if (currentTileLayer) {
+      map.removeLayer(currentTileLayer);
+    }
+
+    currentTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19,
+      subdomains: ['a', 'b', 'c'],
+    }).addTo(map);
+
+    mapProvider = 'osm';
+    await saveToDB('mapProvider', 'osm');
+  }
+}
+
 // Initialize map
 function initMap() {
   map = L.map('map', {
     zoomControl: false,
-  }).setView([37.7749, -122.4194], 13);
+  }).setView([20.5937, 78.9629], 5); // Center on India
 
   // Add zoom control to bottom right
   L.control
@@ -104,9 +160,11 @@ function initMap() {
     })
     .addTo(map);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors',
+  // Default to OpenStreetMap
+  currentTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 19,
+    subdomains: ['a', 'b', 'c'],
   }).addTo(map);
 
   routeLayer = L.featureGroup().addTo(map);
@@ -1028,6 +1086,34 @@ document.getElementById('useRawData').addEventListener('change', function (e) {
 
 // Help button is always visible, no need for visibility logic
 
+// Map provider handler
+document.getElementById('mapProvider').addEventListener('change', function (e) {
+  const provider = e.target.value;
+  const mapplsKeyGroup = document.getElementById('mapplsKeyGroup');
+
+  if (provider === 'mappls') {
+    mapplsKeyGroup.style.display = 'block';
+    // Get API key and switch
+    const apiKey = document.getElementById('mapplsKey').value;
+    if (apiKey && apiKey.trim() !== '') {
+      switchMapProvider('mappls', apiKey);
+    }
+  } else {
+    mapplsKeyGroup.style.display = 'none';
+    switchMapProvider('osm');
+  }
+});
+
+// Mappls API key input handler
+document.getElementById('mapplsKey').addEventListener('change', function (e) {
+  const apiKey = e.target.value;
+  const provider = document.getElementById('mapProvider').value;
+
+  if (provider === 'mappls' && apiKey && apiKey.trim() !== '') {
+    switchMapProvider('mappls', apiKey);
+  }
+});
+
 // Route color mode handler
 document.getElementById('routeColorMode').addEventListener('change', function (e) {
   routeColorMode = e.target.value;
@@ -1357,6 +1443,23 @@ async function initApp() {
   initMap();
   try {
     await initDB();
+
+    // Restore saved map provider and API key
+    const savedProvider = await loadFromDB('mapProvider').catch(() => 'osm');
+    const savedMapplsKey = await loadFromDB('mapplsKey').catch(() => '');
+
+    if (savedProvider && savedMapplsKey) {
+      document.getElementById('mapProvider').value = savedProvider;
+      document.getElementById('mapplsKey').value = savedMapplsKey;
+
+      if (savedProvider === 'mappls') {
+        document.getElementById('mapplsKeyGroup').style.display = 'block';
+        if (savedMapplsKey && savedMapplsKey.trim() !== '') {
+          await switchMapProvider('mappls', savedMapplsKey);
+        }
+      }
+    }
+
     // Try to load saved data
     const savedData = await loadFromDB('timelineData');
     const savedFilename = await loadFromDB('timelineFilename');

@@ -1,0 +1,424 @@
+// Timeline Viewer - Mapbox GL TypeScript implementation
+
+import 'mapbox-gl/dist/mapbox-gl.css';
+import { MapboxMap } from './map/MapboxMap';
+import { icons } from './icons.js';
+import type { LocationPoint, TimelineData, RouteColorMode, AppState } from './types';
+import { getUniqueDatesFromRaw, parseTimelineJSONForDate } from './utils/parser';
+
+// Application state
+const state: AppState = {
+  map: null,
+  currentDateData: [],
+  availableDates: [],
+  selectedTimezone: 'UTC',
+  rawJsonData: null,
+  routeColorMode: 'none',
+  isPlaying: false,
+  lastRenderedIndex: -1,
+};
+
+// IndexedDB for caching
+let db: IDBDatabase | null = null;
+let playInterval: number | null = null;
+let loadingTimeout: number | null = null;
+
+// Map configuration
+const MAPBOX_ACCESS_TOKEN = 'YOUR_MAPBOX_ACCESS_TOKEN'; // User needs to provide this
+let mapboxMap: MapboxMap | null = null;
+
+// Initialize IndexedDB
+async function initDB(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('TimelineDB', 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      db = request.result;
+      resolve();
+    };
+    request.onupgradeneeded = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      if (!db.objectStoreNames.contains('timeline')) {
+        db.createObjectStore('timeline');
+      }
+    };
+  });
+}
+
+// Save to IndexedDB
+async function saveToDB(key: string, value: unknown): Promise<void> {
+  if (!db) throw new Error('DB not initialized');
+  return new Promise((resolve, reject) => {
+    const transaction = db!.transaction(['timeline'], 'readwrite');
+    const store = transaction.objectStore('timeline');
+    const request = store.put(value, key);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve();
+  });
+}
+
+// Load from IndexedDB
+async function loadFromDB(key: string): Promise<unknown> {
+  if (!db) throw new Error('DB not initialized');
+  return new Promise((resolve, reject) => {
+    const transaction = db!.transaction(['timeline'], 'readonly');
+    const store = transaction.objectStore('timeline');
+    const request = store.get(key);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+  });
+}
+
+// Loading indicator functions
+function showLoadingIndicator(message = 'Loading...'): void {
+  const indicator = document.getElementById('loadingIndicator');
+  const text = document.getElementById('loadingText');
+  if (indicator && text) {
+    text.textContent = message;
+    indicator.style.display = 'flex';
+
+    if (loadingTimeout) clearTimeout(loadingTimeout);
+
+    loadingTimeout = window.setTimeout(() => {
+      if (indicator.style.display === 'flex') {
+        text.innerHTML =
+          message +
+          '<br><span style="font-size: 13px; color: #666; margin-top: 8px; display: block;">This can take time for large files...</span>';
+      }
+    }, 5000);
+  }
+}
+
+function hideLoadingIndicator(): void {
+  const indicator = document.getElementById('loadingIndicator');
+  if (indicator) {
+    indicator.style.display = 'none';
+  }
+  if (loadingTimeout) {
+    clearTimeout(loadingTimeout);
+    loadingTimeout = null;
+  }
+}
+
+// Initialize map
+async function initMap(): Promise<void> {
+  const token = (document.getElementById('mapboxToken') as HTMLInputElement)?.value;
+  if (!token || token.trim() === '') {
+    alert('Please enter your Mapbox access token');
+    return;
+  }
+
+  mapboxMap = new MapboxMap('map', token, {
+    center: [78.9629, 20.5937], // India center
+    zoom: 5,
+  });
+
+  // Add India boundaries
+  await mapboxMap.addIndiaBoundaries();
+}
+
+// Update map visualization
+function updateMap(progress: number): void {
+  if (!mapboxMap || state.currentDateData.length === 0) return;
+
+  const targetIndex = Math.floor(progress * (state.currentDateData.length - 1));
+
+  // Update route
+  mapboxMap.updateRoute(state.currentDateData, targetIndex, state.routeColorMode);
+  state.lastRenderedIndex = targetIndex;
+
+  // Update info panel
+  const currentLoc = state.currentDateData[targetIndex];
+  updateInfoPanel(currentLoc, targetIndex);
+}
+
+// Update info panel
+function updateInfoPanel(location: LocationPoint, index: number): void {
+  const infoDiv = document.getElementById('currentInfo');
+  if (!infoDiv) return;
+
+  const timeStr = location.timestamp.toLocaleString('en-US', {
+    timeZone: state.selectedTimezone,
+    hour12: true,
+  });
+
+  let infoHTML = `<strong>${timeStr}</strong><br>`;
+  infoHTML += `Point ${index + 1} of ${state.currentDateData.length}<br>`;
+  infoHTML += `Lat: ${location.lat.toFixed(6)}, Lng: ${location.lng.toFixed(6)}<br>`;
+
+  if (location.activity) {
+    infoHTML += `Activity: ${location.activity}<br>`;
+  }
+  if (location.speed !== undefined) {
+    infoHTML += `Speed: ${(location.speed * 3.6).toFixed(1)} km/h<br>`;
+  }
+  if (location.accuracy) {
+    infoHTML += `Accuracy: ${location.accuracy}<br>`;
+  }
+
+  infoDiv.innerHTML = infoHTML;
+}
+
+// Load timeline data
+async function loadTimelineData(
+  jsonData: TimelineData,
+  filename: string,
+  saveToCache = true
+): Promise<void> {
+  state.rawJsonData = jsonData;
+
+  const useRaw = (document.getElementById('useRawData') as HTMLInputElement).checked;
+
+  const rawSignalCount = jsonData.rawSignals?.length || 0;
+  const semanticSegmentCount = jsonData.semanticSegments?.length || 0;
+  console.log(
+    `Loading file with ${rawSignalCount} raw signals, ${semanticSegmentCount} semantic segments`
+  );
+
+  showLoadingIndicator('Processing timeline data...');
+
+  try {
+    state.availableDates = await getUniqueDatesFromRaw(jsonData, useRaw);
+    if (state.availableDates.length === 0) {
+      hideLoadingIndicator();
+      alert('No location data found in file');
+      return;
+    }
+  } finally {
+    hideLoadingIndicator();
+  }
+
+  // Update filename display
+  const filenameEl = document.getElementById('filename');
+  if (filenameEl) filenameEl.textContent = filename;
+
+  // Populate date selector
+  const dateSelect = document.getElementById('dateSelect') as HTMLSelectElement;
+  dateSelect.innerHTML = '';
+  dateSelect.disabled = false;
+
+  // Add placeholder
+  const placeholderOption = document.createElement('option');
+  placeholderOption.value = '';
+  placeholderOption.textContent = 'Select a date...';
+  placeholderOption.disabled = true;
+  placeholderOption.selected = true;
+  dateSelect.appendChild(placeholderOption);
+
+  state.availableDates.forEach((date) => {
+    const option = document.createElement('option');
+    option.value = date;
+    option.textContent = new Date(date + 'T12:00:00').toLocaleDateString('en-US', {
+      timeZone: state.selectedTimezone,
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+    dateSelect.appendChild(option);
+  });
+
+  // Save to cache
+  if (saveToCache) {
+    try {
+      await saveToDB('timelineData', jsonData);
+      await saveToDB('timelineFilename', filename);
+    } catch (error) {
+      console.error('Failed to cache data:', error);
+    }
+  }
+
+  // Try to restore saved date
+  try {
+    const savedDate = (await loadFromDB('selectedDate')) as string;
+    if (savedDate && state.availableDates.includes(savedDate)) {
+      dateSelect.value = savedDate;
+      await loadDate(savedDate);
+    }
+  } catch {
+    // No saved date
+  }
+}
+
+// Load specific date
+async function loadDate(dateStr: string): Promise<void> {
+  if (!state.rawJsonData) return;
+
+  showLoadingIndicator('Loading date data...');
+  try {
+    const useRaw = (document.getElementById('useRawData') as HTMLInputElement).checked;
+    state.currentDateData = await parseTimelineJSONForDate(state.rawJsonData, dateStr, useRaw);
+  } finally {
+    hideLoadingIndicator();
+  }
+
+  if (state.currentDateData.length === 0) {
+    alert('No data for selected date');
+    return;
+  }
+
+  // Reset playback
+  stopPlayback();
+  state.lastRenderedIndex = -1;
+
+  // Update slider
+  const slider = document.getElementById('timeSlider') as HTMLInputElement;
+  slider.value = '0';
+  slider.disabled = false;
+
+  // Update map
+  updateMap(0);
+
+  // Save selected date
+  try {
+    await saveToDB('selectedDate', dateStr);
+  } catch (error) {
+    console.error('Failed to save selected date:', error);
+  }
+}
+
+// Playback controls
+function startPlayback(): void {
+  if (state.isPlaying || state.currentDateData.length === 0) return;
+
+  state.isPlaying = true;
+  const playBtn = document.getElementById('playBtn');
+  if (playBtn) playBtn.textContent = 'Pause';
+
+  const slider = document.getElementById('timeSlider') as HTMLInputElement;
+  let currentValue = parseFloat(slider.value);
+
+  playInterval = window.setInterval(() => {
+    currentValue += 0.5; // Adjust speed here
+    if (currentValue >= 100) {
+      currentValue = 0;
+    }
+    slider.value = currentValue.toString();
+    updateMap(currentValue / 100);
+  }, 50); // 20 FPS
+}
+
+function stopPlayback(): void {
+  if (!state.isPlaying) return;
+
+  state.isPlaying = false;
+  const playBtn = document.getElementById('playBtn');
+  if (playBtn) playBtn.textContent = 'Play';
+
+  if (playInterval) {
+    clearInterval(playInterval);
+    playInterval = null;
+  }
+}
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded', async () => {
+  // Initialize icons
+  const iconElements = document.querySelectorAll('[data-icon]');
+  iconElements.forEach((el) => {
+    const iconName = el.getAttribute('data-icon');
+    if (iconName && icons[iconName as keyof typeof icons]) {
+      el.innerHTML = icons[iconName as keyof typeof icons];
+    }
+  });
+
+  // Initialize DB
+  try {
+    await initDB();
+
+    // Try to restore cached data
+    const savedData = (await loadFromDB('timelineData')) as TimelineData;
+    const savedFilename = (await loadFromDB('timelineFilename')) as string;
+    if (savedData && savedFilename) {
+      await loadTimelineData(savedData, savedFilename, false);
+    }
+  } catch (error) {
+    console.error('DB initialization failed:', error);
+  }
+
+  // Mapbox token input handler
+  document.getElementById('mapboxToken')?.addEventListener('change', async () => {
+    await initMap();
+  });
+
+  // File upload handler
+  document.getElementById('fileInput')?.addEventListener('change', async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    showLoadingIndicator('Reading file...');
+    try {
+      const text = await file.text();
+      const jsonData = JSON.parse(text) as TimelineData;
+      await loadTimelineData(jsonData, file.name);
+    } catch (error) {
+      hideLoadingIndicator();
+      alert(`Failed to load file: ${error}`);
+    }
+  });
+
+  // Date selector
+  document.getElementById('dateSelect')?.addEventListener('change', (e) => {
+    const dateStr = (e.target as HTMLSelectElement).value;
+    if (dateStr) loadDate(dateStr);
+  });
+
+  // Timeline slider
+  document.getElementById('timeSlider')?.addEventListener('input', (e) => {
+    const progress = parseFloat((e.target as HTMLInputElement).value) / 100;
+    updateMap(progress);
+  });
+
+  // Play button
+  document.getElementById('playBtn')?.addEventListener('click', () => {
+    if (state.isPlaying) {
+      stopPlayback();
+    } else {
+      startPlayback();
+    }
+  });
+
+  // Route color mode
+  document.getElementById('routeColorMode')?.addEventListener('change', (e) => {
+    state.routeColorMode = (e.target as HTMLSelectElement).value as RouteColorMode;
+    state.lastRenderedIndex = -1;
+    const currentProgress = parseFloat(
+      (document.getElementById('timeSlider') as HTMLInputElement).value
+    ) / 100;
+    updateMap(currentProgress);
+  });
+
+  // Timezone selector
+  document.getElementById('timezoneSelect')?.addEventListener('change', (e) => {
+    state.selectedTimezone = (e.target as HTMLSelectElement).value;
+    // Refresh date list if data is loaded
+    if (state.rawJsonData) {
+      const dateSelect = document.getElementById('dateSelect') as HTMLSelectElement;
+      const currentValue = dateSelect.value;
+      dateSelect.innerHTML = '';
+
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = 'Select a date...';
+      placeholder.disabled = true;
+      dateSelect.appendChild(placeholder);
+
+      state.availableDates.forEach((date) => {
+        const option = document.createElement('option');
+        option.value = date;
+        option.textContent = new Date(date + 'T12:00:00').toLocaleDateString('en-US', {
+          timeZone: state.selectedTimezone,
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        });
+        dateSelect.appendChild(option);
+      });
+
+      if (currentValue && state.availableDates.includes(currentValue)) {
+        dateSelect.value = currentValue;
+      }
+    }
+  });
+});

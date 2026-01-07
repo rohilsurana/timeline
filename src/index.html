@@ -3,19 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Google Maps Timeline Viewer</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <title>Google Maps Timeline Viewer - Mapbox Edition</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <div id="controls" class="expanded">
       <div id="controlsHeader">
         <h1>Timeline Viewer</h1>
-        <span id="controlsChevron"></span>
+        <span id="controlsChevron" data-icon="chevronDown"></span>
       </div>
 
       <div id="controlsContent">
+        <div class="control-group">
+          <label for="mapboxToken">Mapbox Access Token</label>
+          <input
+            type="text"
+            id="mapboxToken"
+            placeholder="Enter your Mapbox access token"
+            style="width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;"
+          />
+          <small style="display: block; margin-top: 4px; color: #666; font-size: 11px;">
+            Get free token from <a href="https://account.mapbox.com/access-tokens/" target="_blank" style="color: #5e6ad2;">Mapbox</a> - Shows India's legal boundaries
+          </small>
+        </div>
+
         <div class="control-group">
           <label for="timezoneSelect">Timezone</label>
           <select id="timezoneSelect">
@@ -396,6 +407,6 @@
       }
     </style>
 
-    <script type="module" src="/app.js"></script>
+    <script type="module" src="/app.ts"></script>
   </body>
 </html>

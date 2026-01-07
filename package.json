@@ -20,11 +20,16 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@types/mapbox-gl": "^3.4.1",
+    "@types/node": "^25.0.3",
     "eslint": "^9.39.2",
     "prettier": "^3.7.4",
-    "vite": "^7.3.0"
+    "vite": "^7.3.0",
+    "vite-plugin-dts": "^4.5.4"
   },
   "dependencies": {
-    "lucide-static": "^0.562.0"
+    "lucide-static": "^0.562.0",
+    "mapbox-gl": "^3.17.0",
+    "typescript": "^5.9.3"
   }
 }
