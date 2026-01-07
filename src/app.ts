@@ -119,10 +119,44 @@ async function initMap(): Promise<void> {
 }
 
 // Update map visualization
-function updateMap(progress: number): void {
+// Convert minute value (0-1439) to the closest data point index
+function minuteToIndex(minute: number): number {
+  if (state.currentDateData.length === 0) return 0;
+
+  // Get the date for the first data point in the selected timezone
+  const firstPoint = state.currentDateData[0];
+  const dateStr = firstPoint.timestamp.toLocaleDateString('en-CA', { timeZone: state.selectedTimezone });
+
+  // Create target time: dateStr + minute offset in the selected timezone
+  // We need to work backwards from a timestamp in the target timezone
+  const targetTimeStr = `${String(Math.floor(minute / 60)).padStart(2, '0')}:${String(minute % 60).padStart(2, '0')}:00`;
+
+  // Find the data point closest to this minute
+  for (let i = 0; i < state.currentDateData.length; i++) {
+    const point = state.currentDateData[i];
+    const pointTimeStr = point.timestamp.toLocaleTimeString('en-US', {
+      timeZone: state.selectedTimezone,
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+    const [pointHour, pointMin] = pointTimeStr.split(':').map(Number);
+    const pointMinute = pointHour * 60 + pointMin;
+
+    if (pointMinute >= minute) {
+      return i;
+    }
+  }
+
+  // If we didn't find a point after the target minute, return last index
+  return state.currentDateData.length - 1;
+}
+
+function updateMap(minute: number): void {
   if (!mapboxMap || state.currentDateData.length === 0) return;
 
-  const targetIndex = Math.floor(progress * (state.currentDateData.length - 1));
+  const targetIndex = minuteToIndex(minute);
 
   // Update route
   mapboxMap.updateRoute(state.currentDateData, targetIndex, state.routeColorMode);
@@ -324,7 +358,17 @@ async function loadDate(dateStr: string): Promise<void> {
 
 // Playback controls
 function startPlayback(): void {
-  if (state.isPlaying || state.currentDateData.length === 0) return;
+  if (state.currentDateData.length === 0) return;
+
+  const slider = document.getElementById('timeSlider') as HTMLInputElement;
+
+  // If at the end, reset to start
+  if (parseFloat(slider.value) >= 1439) {
+    slider.value = '0';
+    updateMap(0);
+  }
+
+  if (state.isPlaying) return;
 
   state.isPlaying = true;
   const playBtn = document.getElementById('playBtn');
@@ -335,19 +379,21 @@ function startPlayback(): void {
     playBtn.innerHTML = icons[iconName as keyof typeof icons];
   }
 
-  const slider = document.getElementById('timeSlider') as HTMLInputElement;
-  let currentValue = parseFloat(slider.value);
-
   playInterval = window.setInterval(() => {
-    currentValue += 0.5; // Adjust speed here
-    if (currentValue >= 100) {
-      // Stop at end instead of looping
+    // Read current value from slider (allows seeking during playback)
+    let currentValue = parseFloat(slider.value);
+    currentValue += 1; // Increment by 1 minute
+
+    if (currentValue >= 1439) {
+      currentValue = 1439;
+      slider.value = currentValue.toString();
+      updateMap(currentValue);
       stopPlayback();
       return;
     }
     slider.value = currentValue.toString();
-    updateMap(currentValue / 100);
-  }, 50); // 20 FPS
+    updateMap(currentValue);
+  }, 50); // Update every 50ms = 1 minute of timeline per 50ms real time (1 day in ~72 seconds)
 }
 
 function stopPlayback(): void {
@@ -489,9 +535,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Timeline slider
   document.getElementById('timeSlider')?.addEventListener('input', (e) => {
-    const progress = parseFloat((e.target as HTMLInputElement).value) / 100;
-    updateMap(progress);
+    const minute = parseFloat((e.target as HTMLInputElement).value);
+    updateMap(minute);
     // If playing, playback will continue from this new position automatically
+    // Update the currentValue in the playback interval
+    if (state.isPlaying) {
+      // The interval will pick up the new slider value on next iteration
+    }
   });
 
   // Play button
