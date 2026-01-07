@@ -24,7 +24,8 @@ let playInterval: number | null = null;
 let loadingTimeout: number | null = null;
 
 // Map configuration
-const MAPBOX_ACCESS_TOKEN = 'YOUR_MAPBOX_ACCESS_TOKEN'; // User needs to provide this
+// Get token from environment variable or use hardcoded token
+const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || 'YOUR_MAPBOX_ACCESS_TOKEN_HERE';
 let mapboxMap: MapboxMap | null = null;
 
 // Initialize IndexedDB
@@ -102,13 +103,13 @@ function hideLoadingIndicator(): void {
 
 // Initialize map
 async function initMap(): Promise<void> {
-  const token = (document.getElementById('mapboxToken') as HTMLInputElement)?.value;
-  if (!token || token.trim() === '') {
-    alert('Please enter your Mapbox access token');
+  if (MAPBOX_ACCESS_TOKEN === 'YOUR_MAPBOX_ACCESS_TOKEN_HERE') {
+    console.error('Please set VITE_MAPBOX_TOKEN in .env file or hardcode your token in app.ts');
+    alert('Mapbox token not configured. Please check console for details.');
     return;
   }
 
-  mapboxMap = new MapboxMap('map', token, {
+  mapboxMap = new MapboxMap('map', MAPBOX_ACCESS_TOKEN, {
     center: [78.9629, 20.5937], // India center
     zoom: 5,
   });
@@ -322,6 +323,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Initialize map immediately
+  await initMap();
+
   // Initialize DB
   try {
     await initDB();
@@ -335,11 +339,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch (error) {
     console.error('DB initialization failed:', error);
   }
-
-  // Mapbox token input handler
-  document.getElementById('mapboxToken')?.addEventListener('change', async () => {
-    await initMap();
-  });
 
   // File upload handler
   document.getElementById('fileInput')?.addEventListener('change', async (e) => {
