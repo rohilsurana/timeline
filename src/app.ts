@@ -360,9 +360,9 @@ function stopPlayback(): void {
   }
 }
 
-// Event Listeners
-document.addEventListener('DOMContentLoaded', async () => {
-  // Initialize icons
+// Initialize all icons
+function initIcons(): void {
+  // Initialize icons with data-icon attribute
   const iconElements = document.querySelectorAll('[data-icon]');
   iconElements.forEach((el) => {
     const iconName = el.getAttribute('data-icon');
@@ -370,6 +370,59 @@ document.addEventListener('DOMContentLoaded', async () => {
       el.innerHTML = icons[iconName as keyof typeof icons];
     }
   });
+
+  // Initialize help modal icons (these don't use data-icon)
+  const helpIconEl = document.getElementById('helpIcon');
+  if (helpIconEl) helpIconEl.innerHTML = icons.helpCircle;
+
+  const helpIconAndroid = document.getElementById('helpIconAndroid');
+  if (helpIconAndroid) helpIconAndroid.innerHTML = icons.smartphone;
+
+  const helpIconIOS = document.getElementById('helpIconIOS');
+  if (helpIconIOS) helpIconIOS.innerHTML = icons.smartphone;
+
+  const helpIconDesktop = document.getElementById('helpIconDesktop');
+  if (helpIconDesktop) helpIconDesktop.innerHTML = icons.monitor;
+
+  const helpIconUpload = document.getElementById('helpIconUpload');
+  if (helpIconUpload) helpIconUpload.innerHTML = icons.upload;
+
+  const helpIconSettings = document.getElementById('helpIconSettings');
+  if (helpIconSettings) helpIconSettings.innerHTML = icons.settings;
+
+  const helpIconActivity = document.getElementById('helpIconActivity');
+  if (helpIconActivity) helpIconActivity.innerHTML = icons.activity;
+
+  const helpIconSpeed = document.getElementById('helpIconSpeed');
+  if (helpIconSpeed) helpIconSpeed.innerHTML = icons.zap;
+
+  // Initialize help chevrons
+  const helpChevronAndroid = document.getElementById('helpChevronAndroid');
+  if (helpChevronAndroid) helpChevronAndroid.innerHTML = icons.chevronDown;
+
+  const helpChevronIOS = document.getElementById('helpChevronIOS');
+  if (helpChevronIOS) helpChevronIOS.innerHTML = icons.chevronDown;
+
+  const helpChevronDesktop = document.getElementById('helpChevronDesktop');
+  if (helpChevronDesktop) helpChevronDesktop.innerHTML = icons.chevronDown;
+
+  const helpChevronUpload = document.getElementById('helpChevronUpload');
+  if (helpChevronUpload) helpChevronUpload.innerHTML = icons.chevronDown;
+
+  const helpChevronSettings = document.getElementById('helpChevronSettings');
+  if (helpChevronSettings) helpChevronSettings.innerHTML = icons.chevronDown;
+
+  const helpChevronActivity = document.getElementById('helpChevronActivity');
+  if (helpChevronActivity) helpChevronActivity.innerHTML = icons.chevronDown;
+
+  const helpChevronSpeed = document.getElementById('helpChevronSpeed');
+  if (helpChevronSpeed) helpChevronSpeed.innerHTML = icons.chevronDown;
+}
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded', async () => {
+  // Initialize all icons
+  initIcons();
 
   // Initialize map immediately
   await initMap();
