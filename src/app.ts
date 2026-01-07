@@ -424,6 +424,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize all icons
   initIcons();
 
+  // Initialize timezone
+  const timezoneSelect = document.getElementById('timezoneSelect') as HTMLSelectElement;
+  if (timezoneSelect) {
+    // Try to load saved timezone preference from localStorage
+    const savedTimezone = localStorage.getItem('selectedTimezone');
+    if (savedTimezone) {
+      state.selectedTimezone = savedTimezone;
+      timezoneSelect.value = savedTimezone;
+    } else {
+      // Auto-detect user's timezone
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      state.selectedTimezone = userTimezone;
+      timezoneSelect.value = userTimezone;
+    }
+  }
+
   // Initialize map immediately
   await initMap();
 
@@ -467,6 +483,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('timeSlider')?.addEventListener('input', (e) => {
     const progress = parseFloat((e.target as HTMLInputElement).value) / 100;
     updateMap(progress);
+    // If playing, playback will continue from this new position automatically
   });
 
   // Play button
@@ -491,6 +508,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Timezone selector
   document.getElementById('timezoneSelect')?.addEventListener('change', (e) => {
     state.selectedTimezone = (e.target as HTMLSelectElement).value;
+    // Save timezone preference to localStorage
+    localStorage.setItem('selectedTimezone', state.selectedTimezone);
     // Refresh date list if data is loaded
     if (state.rawJsonData) {
       const dateSelect = document.getElementById('dateSelect') as HTMLSelectElement;
