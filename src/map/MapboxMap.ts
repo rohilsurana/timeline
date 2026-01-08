@@ -23,7 +23,7 @@ export class MapboxMap {
 
     this.map = new mapboxgl.Map({
       container,
-      style: 'mapbox://styles/mapbox/streets-v12',
+      style: 'mapbox://styles/mapbox/streets-v12?worldview=IN',
       center: options?.center || [78.9629, 20.5937], // India center [lng, lat]
       zoom: options?.zoom || 5,
     });
@@ -67,44 +67,6 @@ export class MapboxMap {
           'line-opacity': 0.7,
         },
       });
-    }
-  }
-
-  // Add India boundaries (claimed territories)
-  public async addIndiaBoundaries(): Promise<void> {
-    if (!this.map) return;
-
-    // Wait for style to load
-    if (!this.map.isStyleLoaded()) {
-      await new Promise<void>((resolve) => {
-        this.map!.once('style.load', () => resolve());
-      });
-    }
-
-    try {
-      // Add India admin boundaries layer
-      // We'll use Mapbox's worldview parameter to show India's boundaries
-      const layers = this.map.getStyle()?.layers || [];
-
-      // Find admin boundary layers and update their filter to show India's worldview
-      layers.forEach((layer) => {
-        if (
-          layer.id.includes('admin') ||
-          layer.id.includes('boundary') ||
-          layer.id.includes('disputed')
-        ) {
-          // Set worldview to 'IN' for India
-          this.map!.setFilter(layer.id, [
-            'all',
-            ['==', ['get', 'worldview'], 'IN'],
-            this.map!.getFilter(layer.id) || true,
-          ]);
-        }
-      });
-
-      console.log('India boundaries configured');
-    } catch (error) {
-      console.error('Failed to add India boundaries:', error);
     }
   }
 

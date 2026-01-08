@@ -246,6 +246,16 @@ body {
   color: rgba(255, 255, 255, 0.9);
 }
 
+.data-point.different-date {
+  background: rgba(255, 193, 7, 0.1);
+  border-left: 3px solid #ffc107;
+}
+
+.data-point.different-date .data-point-time {
+  color: #f57c00;
+  font-weight: 500;
+}
+
 #console pre {
   margin: 5px 0;
   white-space: pre-wrap;

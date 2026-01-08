@@ -121,25 +121,8 @@ You can toggle between semantic segments and raw GPS data using the "Use Raw GPS
 
 1. Sign up for a free account at [Mapbox](https://account.mapbox.com/auth/signup/)
 2. Go to [Access Tokens](https://account.mapbox.com/access-tokens/)
-3. Copy your default public token (starts with `pk.`) or create a new one
-4. **(Optional)** Add URL restrictions for security:
-   - In Mapbox dashboard, edit your token
-   - Add URL restrictions: `https://your-username.github.io/*`
-   - This prevents unauthorized use of your token
-
-### India Boundaries Implementation
-
-This app uses Mapbox's `worldview='IN'` parameter to display India's legally recognized boundaries including Jammu & Kashmir, Ladakh, and Arunachal Pradesh as per Survey of India guidelines.
-
-**Implementation in MapboxMap.ts:**
-```typescript
-// Automatically applied to boundary layers
-this.map.setFilter(layer.id, [
-  'all',
-  ['==', ['get', 'worldview'], 'IN'],
-  // ...
-]);
-```
+3. Copy your default public token (starts with `pk.`)
+4. The app uses Mapbox's `worldview='IN'` parameter for India-compliant boundaries
 
 ### Local Development
 
@@ -257,20 +240,6 @@ npm run deploy
 - **[Lucide Icons](https://lucide.dev/)** - Clean, consistent SVG icons
 - **ESLint & Prettier** - Code quality and formatting
 
-## 🌟 Why Mapbox?
-
-This project uses Mapbox GL JS for superior performance and built-in India compliance. Here's how it compares to the previous Leaflet implementation:
-
-| Feature | Previous (Leaflet) | Current (Mapbox) |
-|---------|-------------------|------------------|
-| **Map Type** | Raster tiles | Vector (WebGL) |
-| **India Boundaries** | Required Mappls key | Built-in with `worldview='IN'` |
-| **Language** | JavaScript | TypeScript |
-| **Architecture** | Single file | Modular |
-| **Type Safety** | No | Yes ✓ |
-| **Performance** | Good | Better |
-| **Rendering** | DOM-based | GPU-accelerated |
-
 ## 🎨 UI Components
 
 ### Timeline Controls
@@ -353,36 +322,18 @@ Contributions are welcome! Here's how you can help:
 
 ## 🐛 Troubleshooting
 
-### Mapbox token issues
+### Token or map not displaying
 - Verify token is set in `.env` file: `VITE_MAPBOX_TOKEN=your_token`
-- Check token is valid at [Mapbox Account](https://account.mapbox.com/)
-- Ensure you haven't exceeded free tier limits (50,000 loads/month)
-- For GitHub Pages, verify secret is set correctly in repository settings
+- For GitHub Pages, check repository secrets are configured
 
 ### File won't load
-- Ensure the file is a valid JSON file from Google Takeout
+- Ensure the file is valid JSON from Google Takeout
 - Check browser console for errors (F12)
-- Try with a smaller date range if file is very large
-- Verify file format matches expected structure
+- Try a smaller date range if file is very large
 
-### Map not displaying
-- Check Mapbox token configuration
-- Verify internet connection (map tiles require internet)
-- Try refreshing the page
-- Clear browser cache and reload
-- Check browser console for WebGL errors
-
-### Performance issues with large files
-- Use the "Raw GPS Data" toggle to switch to semantic segments
-- Filter to specific date ranges in Google Takeout
+### Performance issues
+- Toggle between raw GPS data and semantic segments
 - Close other browser tabs to free up memory
-- Consider using a more powerful device for very large datasets
-
-### Timezone issues
-- Verify correct timezone is selected in dropdown
-- Check that your data includes timezone information
-- Try auto-detect by refreshing the page
-- Clear localStorage if timezone preference is cached incorrectly
 
 ## 📄 License
 

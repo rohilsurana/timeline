@@ -23,9 +23,21 @@ export function extractDateFromTimestamp(timestamp: string): string {
   return date.toISOString().split('T')[0];
 }
 
-// Extract location from semantic segment
-export function extractLocations(segment: SemanticSegment): LocationPoint[] {
+// Helper to check if a timestamp matches target date in timezone
+function isDateMatch(timestamp: string, targetDateStr: string, timezone: string): boolean {
+  const date = new Date(timestamp);
+  const dateInTz = date.toLocaleDateString('en-CA', { timeZone: timezone });
+  return dateInTz === targetDateStr;
+}
+
+// Extract location from semantic segment with optional date filtering
+export function extractLocations(
+  segment: SemanticSegment,
+  targetDateStr?: string,
+  timezone?: string
+): LocationPoint[] {
   const locations: LocationPoint[] = [];
+  const shouldFilter = targetDateStr && timezone;
 
   // Handle activity segment
   if (segment.activity) {
@@ -38,6 +50,11 @@ export function extractLocations(segment: SemanticSegment): LocationPoint[] {
     if (segment.timelinePath && segment.timelinePath.length > 0) {
       segment.timelinePath.forEach((point) => {
         if (point.point && point.time) {
+          // Filter by date if filtering is enabled
+          if (shouldFilter && !isDateMatch(point.time, targetDateStr, timezone)) {
+            return; // Skip this waypoint
+          }
+
           const [latStr, lngStr] = point.point.replace('geo:', '').split(',');
           const lat = parseFloat(latStr);
           const lng = parseFloat(lngStr);
@@ -57,6 +74,12 @@ export function extractLocations(segment: SemanticSegment): LocationPoint[] {
   else if (segment.visit) {
     const visit = segment.visit;
     const startTime = parseTimestamp(segment.startTime);
+
+    // Filter place visit by startTime if filtering is enabled
+    if (shouldFilter && !isDateMatch(segment.startTime, targetDateStr, timezone)) {
+      return locations; // Skip this place visit
+    }
+
     if (visit.topCandidate && visit.topCandidate.placeLocation) {
       const [latStr, lngStr] = visit.topCandidate.placeLocation.latLng.split(',');
       locations.push({
@@ -77,6 +100,11 @@ export function extractLocations(segment: SemanticSegment): LocationPoint[] {
   else if (segment.timelinePath && segment.timelinePath.length > 0) {
     segment.timelinePath.forEach((point) => {
       if (point.point && point.time) {
+        // Filter by date if filtering is enabled
+        if (shouldFilter && !isDateMatch(point.time, targetDateStr, timezone)) {
+          return; // Skip this waypoint
+        }
+
         const [latStr, lngStr] = point.point.replace('geo:', '').split(',');
         const pointTime = parseTimestamp(point.time);
         locations.push({
@@ -186,14 +214,27 @@ export async function getUniqueDatesFromRaw(
     }
     console.log(`Finished processing. Found ${dates.size} unique dates`);
   } else if (jsonData.semanticSegments) {
-    // Handle semantic segments
+    // Handle semantic segments - check startTime, endTime, and all waypoints
     const segments = Array.isArray(jsonData)
       ? (jsonData as unknown as SemanticSegment[])
       : jsonData.semanticSegments;
 
     segments?.forEach((segment) => {
+      // Add date from startTime
       if (segment.startTime) {
         dates.add(extractDateFromTimestamp(segment.startTime));
+      }
+      // Add date from endTime (for segments crossing midnight)
+      if (segment.endTime) {
+        dates.add(extractDateFromTimestamp(segment.endTime));
+      }
+      // Add dates from all waypoints
+      if (segment.timelinePath && segment.timelinePath.length > 0) {
+        segment.timelinePath.forEach((point) => {
+          if (point.time) {
+            dates.add(extractDateFromTimestamp(point.time));
+          }
+        });
       }
     });
   }
@@ -260,8 +301,23 @@ export async function parseTimelineJSONForDate(
       : jsonData.semanticSegments;
 
     segments?.forEach((segment) => {
+      // Include segment if startTime, endTime, or any waypoint matches target date
+      let includeSegment = false;
+
       if (segment.startTime && isTargetDate(segment.startTime)) {
-        const locs = extractLocations(segment);
+        includeSegment = true;
+      } else if (segment.endTime && isTargetDate(segment.endTime)) {
+        includeSegment = true;
+      } else if (segment.timelinePath && segment.timelinePath.length > 0) {
+        // Check if any waypoint is on target date
+        includeSegment = segment.timelinePath.some(
+          (point) => point.time && isTargetDate(point.time)
+        );
+      }
+
+      if (includeSegment) {
+        // Pass dateStr and timezone to filter waypoints to only those on target date
+        const locs = extractLocations(segment, dateStr, timezone);
         locations.push(...locs);
       }
     });

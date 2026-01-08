@@ -113,9 +113,6 @@ async function initMap(): Promise<void> {
     center: [78.9629, 20.5937], // India center
     zoom: 5,
   });
-
-  // Add India boundaries
-  await mapboxMap.addIndiaBoundaries();
 }
 
 // Update map visualization
@@ -172,6 +169,9 @@ function updateConsoleDataPoints(): void {
   const consoleContent = document.getElementById('consoleContent');
   if (!consoleContent || state.currentDateData.length === 0) return;
 
+  const dateSelect = document.getElementById('dateSelect') as HTMLSelectElement;
+  const selectedDate = dateSelect.value;
+
   let html = '';
   state.currentDateData.forEach((location, index) => {
     const timeStr = location.timestamp.toLocaleTimeString('en-US', {
@@ -182,13 +182,32 @@ function updateConsoleDataPoints(): void {
       second: '2-digit',
     });
 
+    // Get the date of this point in the selected timezone
+    const pointDateStr = location.timestamp.toLocaleDateString('en-CA', {
+      timeZone: state.selectedTimezone,
+    });
+
+    const isDifferentDate = pointDateStr !== selectedDate;
+    const dateClass = isDifferentDate ? 'different-date' : '';
+
+    // Format date as "Dec 20" for display
+    let displayTime = timeStr;
+    if (isDifferentDate) {
+      const dateStr = location.timestamp.toLocaleDateString('en-US', {
+        timeZone: state.selectedTimezone,
+        month: 'short',
+        day: 'numeric',
+      });
+      displayTime = `${dateStr} • ${timeStr}`;
+    }
+
     let info = `${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`;
     if (location.activity) info += ` • ${location.activity}`;
     if (location.type) info += ` • ${location.type}`;
     if (location.speed !== undefined) info += ` • ${(location.speed * 3.6).toFixed(1)} km/h`;
 
-    html += `<div class="data-point" data-index="${index}">`;
-    html += `<div class="data-point-time">${timeStr}</div>`;
+    html += `<div class="data-point ${dateClass}" data-index="${index}">`;
+    html += `<div class="data-point-time">${displayTime}</div>`;
     html += `<div class="data-point-info">${info}</div>`;
     html += `</div>`;
   });
@@ -207,14 +226,10 @@ function updateConsoleDataPoints(): void {
   highlightCurrentDataPoint();
 }
 
-// Seek timeline to specific data point
-function seekToDataPoint(index: number): void {
-  if (index < 0 || index >= state.currentDateData.length) return;
-
-  const location = state.currentDateData[index];
-
+// Seek to a specific time on the currently loaded date
+function seekToTimeOnCurrentDate(timestamp: Date): void {
   // Convert timestamp to minute of day in selected timezone
-  const timeStr = location.timestamp.toLocaleTimeString('en-US', {
+  const timeStr = timestamp.toLocaleTimeString('en-US', {
     timeZone: state.selectedTimezone,
     hour12: false,
     hour: '2-digit',
@@ -227,6 +242,32 @@ function seekToDataPoint(index: number): void {
   const slider = document.getElementById('timeSlider') as HTMLInputElement;
   slider.value = minute.toString();
   updateMap(minute);
+}
+
+// Seek timeline to specific data point
+async function seekToDataPoint(index: number): Promise<void> {
+  if (index < 0 || index >= state.currentDateData.length) return;
+
+  const location = state.currentDateData[index];
+  const dateSelect = document.getElementById('dateSelect') as HTMLSelectElement;
+  const selectedDate = dateSelect.value;
+
+  // Get the date of this point in the selected timezone
+  const pointDateStr = location.timestamp.toLocaleDateString('en-CA', {
+    timeZone: state.selectedTimezone,
+  });
+
+  // Check if we need to switch to a different date
+  if (pointDateStr !== selectedDate) {
+    // Switch to the correct date
+    dateSelect.value = pointDateStr;
+    await loadDate(pointDateStr);
+    // After loading the new date, seek to the time
+    seekToTimeOnCurrentDate(location.timestamp);
+  } else {
+    // Same date, just seek to the time
+    seekToTimeOnCurrentDate(location.timestamp);
+  }
 }
 
 // Highlight current data point in console
