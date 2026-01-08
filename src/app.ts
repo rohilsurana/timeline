@@ -382,6 +382,9 @@ async function loadDate(dateStr: string): Promise<void> {
   // Update map
   updateMap(0);
 
+  // Update console data points
+  updateConsoleDataPoints();
+
   // Save selected date
   try {
     await saveToDB('selectedDate', dateStr);
