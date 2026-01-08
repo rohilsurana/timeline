@@ -154,7 +154,10 @@ You can toggle between semantic segments and raw GPS data using the "Use Raw GPS
    ```bash
    npm run dev
    ```
-   The app will open at `http://localhost:5173/timeline/`
+   - Vite dev server starts at `http://localhost:5173/timeline/`
+   - Hot Module Replacement (HMR) for instant updates
+   - TypeScript compilation with type checking
+   - Environment variables loaded from `.env`
 
 5. **Load your timeline data**
    - Click "Choose File" and select your `Timeline.json`
@@ -168,7 +171,17 @@ You can toggle between semantic segments and raw GPS data using the "Use Raw GPS
 npm run build
 ```
 
-The built files will be in the `dist` directory.
+The Vite build process:
+- Compiles TypeScript to optimized JavaScript
+- Bundles and minifies all assets
+- Generates service worker for PWA
+- Creates `.nojekyll` file for GitHub Pages
+- Outputs to `dist/` directory with correct base path
+
+Preview the production build locally:
+```bash
+npm run preview
+```
 
 ### Deploy to GitHub Pages
 
@@ -190,7 +203,7 @@ The GitHub Actions workflow will automatically inject the token during build.
 
 ```
 timeline/
-├── src/
+├── src/                 # Source files (Vite root)
 │   ├── app.ts           # Main application logic (TypeScript)
 │   ├── icons.js         # SVG icon definitions
 │   ├── index.html       # Main HTML file
@@ -198,16 +211,60 @@ timeline/
 │   ├── map/
 │   │   └── MapboxMap.ts # Mapbox GL wrapper with India boundaries
 │   ├── utils/
-│   │   └── parser.ts    # Timeline data parsing utilities
+│   │   ├── parser.ts    # Timeline data parsing utilities
+│   │   └── colors.ts    # Route color utilities
 │   └── types.ts         # TypeScript type definitions
+├── public/              # Static assets (PWA icons)
+│   ├── icon.png         # 32x32 favicon
+│   ├── icon-192.png     # 192x192 PWA icon
+│   └── icon-512.png     # 512x512 PWA icon
 ├── dist/                # Built files (generated)
 ├── .env                 # Environment variables (create this)
 ├── .env.example         # Environment template
 ├── package.json         # Dependencies and scripts
 ├── tsconfig.json        # TypeScript configuration
-├── vite.config.js       # Vite configuration
+├── vite.config.js       # Vite configuration with PWA plugin
 └── README.md            # This file
 ```
+
+## ⚙️ Vite Configuration
+
+The project uses a custom Vite setup optimized for GitHub Pages deployment and PWA support:
+
+### Custom Root Directory
+```js
+root: 'src',              // Source files in src/ instead of project root
+publicDir: '../public',   // Static assets served from public/
+```
+
+### GitHub Pages Base Path
+```js
+base: '/timeline/',       // Matches GitHub Pages URL path
+```
+
+### Build Configuration
+```js
+build: {
+  outDir: '../dist',      // Output directory relative to src/
+  emptyOutDir: true,      // Clean dist/ before each build
+}
+```
+
+### PWA Plugin (vite-plugin-pwa)
+- **Auto-update registration** - Service worker updates automatically
+- **Icon assets** - Includes 192x192 and 512x512 PNG icons
+- **Manifest** - Full PWA manifest with theme colors and display mode
+- **Workbox caching** - Caches Mapbox tiles for offline use (30 days)
+
+### Custom Plugins
+- **add-nojekyll** - Creates `.nojekyll` file to disable Jekyll processing on GitHub Pages
+
+This configuration enables:
+- Clean URL structure for GitHub Pages
+- TypeScript compilation with hot module replacement
+- PWA installation with offline support
+- Optimized Mapbox tile caching
+- Proper static asset handling
 
 ## 💻 Development Commands
 
@@ -234,9 +291,10 @@ npm run deploy
 ## 🛠️ Technologies Used
 
 - **[Vite](https://vitejs.dev/)** - Fast build tool and dev server with HMR
-- **[TypeScript](https://www.typescriptlang.org/)** - Type-safe JavaScript
+  - **[vite-plugin-pwa](https://vite-pwa-org.netlify.app/)** - Zero-config PWA with Workbox
+- **[TypeScript](https://www.typescriptlang.org/)** - Type-safe JavaScript with strict mode
 - **[Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/)** - WebGL-powered vector maps
-- **[IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)** - Client-side data storage
+- **[IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)** - Client-side data storage for caching
 - **[Lucide Icons](https://lucide.dev/)** - Clean, consistent SVG icons
 - **ESLint & Prettier** - Code quality and formatting
 
