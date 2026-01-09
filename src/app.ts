@@ -794,47 +794,4 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   });
-
-  // PWA Install Prompt
-  let deferredPrompt: any;
-
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    showInstallButton();
-  });
-
-  function showInstallButton() {
-    const controlsContent = document.getElementById('controlsContent');
-    if (!controlsContent || document.getElementById('installBtn')) return;
-
-    const installGroup = document.createElement('div');
-    installGroup.className = 'control-group';
-    installGroup.innerHTML = `
-      <button id="installBtn" style="width: 100%; padding: 10px; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: transform 0.2s;">
-        📱 Install App
-      </button>
-    `;
-
-    controlsContent.appendChild(installGroup);
-
-    document.getElementById('installBtn')?.addEventListener('click', async () => {
-      if (!deferredPrompt) return;
-
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-
-      if (outcome === 'accepted') {
-        console.log('PWA installed');
-      }
-
-      deferredPrompt = null;
-      installGroup.remove();
-    });
-  }
-
-  window.addEventListener('appinstalled', () => {
-    console.log('PWA was installed');
-    document.getElementById('installBtn')?.closest('.control-group')?.remove();
-  });
 });
