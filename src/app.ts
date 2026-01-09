@@ -785,6 +785,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Help collapsible section handlers
+  document.querySelectorAll('.help-collapsible-header').forEach((button) => {
+    button.addEventListener('click', () => {
+      const collapsible = button.parentElement;
+      if (collapsible) {
+        collapsible.classList.toggle('expanded');
+      }
+    });
+  });
+
   // PWA Install Prompt
   let deferredPrompt: any;
 
